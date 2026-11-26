@@ -1,0 +1,57 @@
+{
+  "id": "community.json-format",
+  "name": "JSON 批量格式化",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "批量美化、压缩、校验 JSON 文件，或按键名递归排序后重排；写回前逐项预览，可选保留 .bak 备份。",
+  "runtime": "process",
+  "entry": "main.mjs",
+  "permissions": [
+    "fs.read",
+    "fs.write"
+  ],
+  "commands": [
+    {
+      "id": "community.json-format.apply",
+      "title": "格式化 JSON 文件",
+      "description": "批量美化（2/4 空格）、压缩成单行、按键排序或仅校验 JSON，先预览命中情况再写回。",
+      "group": "开发",
+      "icon": "code-format",
+      "order": 261,
+      "requiresPreview": true,
+      "cancellable": false,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 2000,
+        "extensions": [
+          ".json",
+          ".jsonc",
+          ".webmanifest"
+        ]
+      },
+      "parameters": [
+        {
+          "key": "mode",
+          "label": "处理方式",
+          "type": "select",
+          "default": "美化（2 空格）",
+          "options": [
+            "美化（2 空格）",
+            "美化（4 空格）",
+            "压缩为单行",
+            "按字母排序键后美化",
+            "仅校验，不写回"
+          ]
+        },
+        {
+          "key": "backup",
+          "label": "保留 .bak 备份",
+          "type": "toggle",
+          "default": "true"
+        }
+      ]
+    }
+  ]
+}

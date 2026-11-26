@@ -1,0 +1,33 @@
+# Checks every PR before merge: schema/manifest validation, live protocol handshake,
+# isolated package tests, and dist dry-run packaging.
+name: pr
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check manifests and protocol handshake
+        shell: pwsh
+        run: ./scripts/check.ps1
+      - name: Run package tests
+        shell: pwsh
+        run: ./scripts/test.ps1
+      - name: Dry-run dist packaging
+        shell: pwsh
+        run: ./scripts/dist.ps1 -OutDir "$env:RUNNER_TEMP/dist-dry"

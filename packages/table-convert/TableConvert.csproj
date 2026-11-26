@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>TableConvert</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="tests/**" />
+    <ProjectReference Include="../../sdk/csharp/RightToolbox.PluginSdk.csproj" />
+  </ItemGroup>
+</Project>

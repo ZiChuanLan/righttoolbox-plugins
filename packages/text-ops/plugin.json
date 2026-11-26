@@ -1,0 +1,122 @@
+{
+  "id": "community.text-ops",
+  "name": "文本批处理工具",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "文本行数与字数统计、去重排序与空行清理、多文本文件顺序合并。",
+  "runtime": "process",
+  "entry": "TextOps.exe",
+  "permissions": [
+    "fs.read",
+    "fs.write"
+  ],
+  "commands": [
+    {
+      "id": "community.text-ops.stats",
+      "title": "文本字数与行数统计",
+      "description": "只读统计文本行数、非空行、字符数、词数、换行格式与编码。",
+      "group": "文本",
+      "icon": "text-encoding",
+      "order": 200,
+      "autoRun": true,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 500,
+        "extensions": [
+          ".txt", ".md", ".csv", ".tsv", ".log", ".json", ".xml", ".yaml", ".yml",
+          ".ini", ".conf", ".sql", ".html", ".css", ".js", ".ts", ".cs", ".py", ".cpp", ".h", ".java"
+        ]
+      }
+    },
+    {
+      "id": "community.text-ops.cleanup",
+      "title": "文本去重与排序清理",
+      "description": "按行去重、升序/降序排列、剔除空行或首尾空白，生成新副本保留原件。",
+      "group": "文本",
+      "icon": "code-format",
+      "order": 201,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 200,
+        "extensions": [
+          ".txt", ".md", ".csv", ".tsv", ".log", ".ini", ".conf"
+        ]
+      },
+      "parameters": [
+        {
+          "key": "dedupe",
+          "label": "去除重复行",
+          "type": "toggle",
+          "default": "true"
+        },
+        {
+          "key": "sortMode",
+          "label": "排序方式",
+          "type": "select",
+          "default": "保持原序",
+          "options": ["保持原序", "升序 (A→Z)", "降序 (Z→A)", "按长度升序"]
+        },
+        {
+          "key": "trimLines",
+          "label": "清理首尾空白",
+          "type": "toggle",
+          "default": "false"
+        },
+        {
+          "key": "removeBlank",
+          "label": "移除空行",
+          "type": "toggle",
+          "default": "true"
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹",
+          "type": "folder",
+          "default": "",
+          "hint": "留空保存到原文件夹；始终保留原件。"
+        }
+      ]
+    },
+    {
+      "id": "community.text-ops.merge",
+      "title": "多文本文件顺序合并",
+      "description": "将选中的多个文本/日志/Markdown 文件合并为单个输出文件。",
+      "group": "文本",
+      "icon": "file",
+      "order": 202,
+      "selection": {
+        "kind": "files",
+        "min": 2,
+        "max": 500,
+        "extensions": [
+          ".txt", ".md", ".log", ".csv", ".tsv", ".json", ".yaml", ".yml", ".ini", ".conf"
+        ]
+      },
+      "parameters": [
+        {
+          "key": "separator",
+          "label": "文件分隔方式",
+          "type": "select",
+          "default": "文件名标题头",
+          "options": ["文件名标题头", "空行分隔", "直接拼接"]
+        },
+        {
+          "key": "fileName",
+          "label": "输出文件名（可选）",
+          "type": "text",
+          "default": "",
+          "hint": "留空自动命名为“首文件名_merged”。"
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

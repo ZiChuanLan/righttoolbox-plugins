@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "repository": "https://github.com/ZiChuanLan/righttoolbox-plugins",
+  "plugins": [
+    {
+      "id": "community.text-ops",
+      "name": "文本批处理工具",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "文本",
+      "icon": "text-encoding",
+      "language": "C# (.NET 10)",
+      "package": "packages/text-ops",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["文本", "字数统计", "去重", "排序", "合并", "text"],
+      "summary": {
+        "zh": "统计文本行数/字数/词数与编码，批量去重、排序与空行清理，以及多文本文件顺序合并。",
+        "en": "Line/word/encoding statistics, deduplication & sorting cleanup, and sequential text file merging."
+      }
+    },
+    {
+      "id": "community.table-convert",
+      "name": "表格与数据转换",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "数据",
+      "icon": "code-format",
+      "language": "C# (.NET 10)",
+      "package": "packages/table-convert",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["CSV", "TSV", "JSON", "Markdown", "表格", "Excel"],
+      "summary": {
+        "zh": "CSV / TSV 互转 JSON 对象数组、Markdown 表格与 Excel 兼容的 UTF-8 BOM CSV，以及 JSON 数组导出为 CSV。",
+        "en": "Convert CSV/TSV to JSON arrays, Markdown tables, or Excel UTF-8 BOM CSV, and export JSON arrays to CSV."
+      }
+    },
+    {
+      "id": "community.dir-tree",
+      "name": "目录树与文件清单",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "实用",
+      "icon": "organize",
+      "language": "C# (.NET 10)",
+      "package": "packages/dir-tree",
+      "permissions": ["fs.read", "fs.write", "clipboard.write"],
+      "tags": ["目录树", "tree", "清单", "CSV", "JSON", "SHA-256"],
+      "summary": {
+        "zh": "一键生成 Unicode / ASCII / Markdown 目录结构树并写入剪贴板，或导出含体积、时间与 SHA-256 的文件清单。",
+        "en": "Generate Unicode/ASCII/Markdown directory trees to clipboard and export CSV/JSON file manifests with optional SHA-256."
+      }
+    },
+    {
+      "id": "community.file-time",
+      "name": "批量调整文件时间",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "文件",
+      "icon": "rename",
+      "language": "C# (.NET 10)",
+      "package": "packages/file-time",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["时间", "时间戳", "创建时间", "修改时间", "exif", "日期"],
+      "summary": {
+        "zh": "批量同步创建/修改时间、按小时偏移修正时区差或从文件名自动解析日期，支持提交前逐项预览。",
+        "en": "Batch sync creation/modified timestamps, apply hour offsets, or extract dates from filenames with pre-commit preview."
+      }
+    },
+    {
+      "id": "community.base64-kit",
+      "name": "Base64 / Data URI 编解码",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "开发",
+      "icon": "code-format",
+      "language": "PowerShell",
+      "package": "packages/base64-kit",
+      "permissions": ["fs.read", "fs.write", "clipboard.write"],
+      "tags": ["Base64", "DataURI", "编码", "解码", "开发", "PowerShell"],
+      "summary": {
+        "zh": "Windows 原生 PowerShell 免编译插件：文件编码为 Base64 / Data URI 写入剪贴板，或从 Base64 文本还原为文件。",
+        "en": "Zero-compile Windows PowerShell plugin to encode files as Base64/Data URIs to clipboard or decode Base64 text back to files."
+      }
+    },
+    {
+      "id": "community.gbk-fix",
+      "name": "乱码文件名修复",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "文件",
+      "icon": "rename",
+      "language": "Python 3",
+      "package": "packages/gbk-fix",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["乱码", "GBK", "ZIP", "编码", "重命名", "mojibake"],
+      "summary": {
+        "zh": "修复旧 ZIP / FTP / GBK 环境造成的乱码文件名（cp437、latin-1 误解码），先预览再改名，冲突自动跳过。",
+        "en": "Repair mojibake file names from legacy ZIP/FTP archives mis-decoded as cp437 or latin-1, with preview and conflict skipping."
+      }
+    },
+    {
+      "id": "community.json-format",
+      "name": "JSON 批量格式化",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "开发",
+      "icon": "code-format",
+      "language": "Node.js",
+      "package": "packages/json-format",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["JSON", "格式化", "压缩", "校验", "排序", "format"],
+      "summary": {
+        "zh": "批量美化、压缩、校验 JSON 或按键名递归排序，写回前预览，可保留 .bak 并保留原有 BOM 与换行风格。",
+        "en": "Batch pretty-print, minify, validate or recursively key-sort JSON with preview, backups, BOM and line-ending preservation."
+      }
+    },
+    {
+      "id": "community.text-replace",
+      "name": "批量文本替换",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "文本",
+      "icon": "text-encoding",
+      "language": "Python 3",
+      "package": "packages/text-replace",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["替换", "正则", "regex", "编码", "批量", "replace"],
+      "summary": {
+        "zh": "跨文件批量查找替换，支持正则、递归子目录与 UTF-8/GBK 自动探测，预览命中数后写回并保留 .bak。",
+        "en": "Cross-file find & replace with regex, recursion and UTF-8/GBK detection, previewing hit counts before writing with .bak backups."
+      }
+    }
+  ]
+}

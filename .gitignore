@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+artifacts/
+.test-work/
+.sandbox/
+.vs/
+*.user
+*.suo
+*.tmp
+__pycache__/
+*.pyc
+node_modules/

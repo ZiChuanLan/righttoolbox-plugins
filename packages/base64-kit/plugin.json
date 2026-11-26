@@ -1,0 +1,87 @@
+{
+  "id": "community.base64-kit",
+  "name": "Base64 / Data URI 编解码",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "Windows 原生 PowerShell 免编译插件：文件转 Base64 / Data URI 并复制剪贴板，以及 Base64 文本还原为文件。",
+  "runtime": "process",
+  "entry": "main.ps1",
+  "permissions": [
+    "fs.read",
+    "fs.write",
+    "clipboard.write"
+  ],
+  "commands": [
+    {
+      "id": "community.base64-kit.encode",
+      "title": "文件转 Base64 / Data URI",
+      "description": "将选定文件编码为纯 Base64 或 data:<mime>;base64,... 字符串，自动复制剪贴板并可选保存文本。",
+      "group": "开发",
+      "icon": "code-format",
+      "order": 240,
+      "autoRun": true,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 20
+      },
+      "parameters": [
+        {
+          "key": "outputMode",
+          "label": "编码格式",
+          "type": "select",
+          "default": "Data URI (含 MIME)",
+          "options": [
+            "Data URI (含 MIME)",
+            "纯 Base64 字符串"
+          ]
+        },
+        {
+          "key": "saveToFile",
+          "label": "同时保存为 .b64.txt",
+          "type": "toggle",
+          "default": "false"
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    },
+    {
+      "id": "community.base64-kit.decode",
+      "title": "Base64 文本还原为文件",
+      "description": "自动剥离 Data URI 前缀与空白换行并解码还原为文件（保留原文本）。",
+      "group": "开发",
+      "icon": "file",
+      "order": 241,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 100,
+        "extensions": [
+          ".b64",
+          ".txt"
+        ]
+      },
+      "parameters": [
+        {
+          "key": "extension",
+          "label": "目标扩展名（可选）",
+          "type": "text",
+          "default": "",
+          "hint": "留空时自动识别 Data URI 中的格式，无法识别则输出 .bin。"
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

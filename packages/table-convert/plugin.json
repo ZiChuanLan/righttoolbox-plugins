@@ -1,0 +1,84 @@
+{
+  "id": "community.table-convert",
+  "name": "表格与数据转换",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "CSV / TSV 转 JSON 对象数组、Markdown 表格与 UTF-8 BOM CSV，以及 JSON 数组导出为 CSV。",
+  "runtime": "process",
+  "entry": "TableConvert.exe",
+  "permissions": [
+    "fs.read",
+    "fs.write"
+  ],
+  "commands": [
+    {
+      "id": "community.table-convert.csv-to-other",
+      "title": "CSV / TSV 转 JSON / Markdown",
+      "description": "完整支持引号转义、内嵌换行与中文编码，转为 JSON、Markdown 表格或 Excel UTF-8 BOM CSV。",
+      "group": "数据",
+      "icon": "code-format",
+      "order": 210,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 200,
+        "extensions": [
+          ".csv",
+          ".tsv"
+        ]
+      },
+      "parameters": [
+        {
+          "key": "targetFormat",
+          "label": "目标格式",
+          "type": "select",
+          "default": "JSON 对象数组",
+          "options": [
+            "JSON 对象数组",
+            "Markdown 表格",
+            "TSV (制表符分隔)",
+            "CSV (UTF-8 BOM)"
+          ]
+        },
+        {
+          "key": "hasHeader",
+          "label": "首行为表头",
+          "type": "toggle",
+          "default": "true"
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹",
+          "type": "folder",
+          "default": "",
+          "hint": "留空保存到原文件夹；始终保留原件。"
+        }
+      ]
+    },
+    {
+      "id": "community.table-convert.json-to-csv",
+      "title": "JSON 数组导出为 CSV",
+      "description": "将 JSON 对象数组导出为 Excel 可直接双击打开的 UTF-8 BOM CSV 表格。",
+      "group": "数据",
+      "icon": "code-format",
+      "order": 211,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 200,
+        "extensions": [
+          ".json"
+        ]
+      },
+      "parameters": [
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

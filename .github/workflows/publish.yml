@@ -1,0 +1,74 @@
+# Publishes every plugin version onto the `dist` branch (zips/*.zip + index.json with SHA-256),
+# matching the Magpie community plugin distribution model: merging a PR immediately ships it.
+name: publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/**'
+      - 'sdk/**'
+      - 'registry.json'
+      - 'scripts/dist.ps1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency: publish
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check manifests and protocol handshake
+        shell: pwsh
+        run: ./scripts/check.ps1
+      - name: Run package tests
+        shell: pwsh
+        run: ./scripts/test.ps1
+
+  dist:
+    needs: test
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Pack onto dist branch
+        shell: pwsh
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          $distDir = Join-Path $env:RUNNER_TEMP "dist"
+          git fetch --depth=1 origin dist 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            git worktree add -B dist $distDir FETCH_HEAD
+          } else {
+            git worktree add --orphan -b dist $distDir
+          }
+          ./scripts/dist.ps1 -OutDir $distDir
+          Push-Location $distDir
+          git add -A .
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "dist is current"
+          } else {
+            $sha = $env:GITHUB_SHA.Substring(0, 7)
+            git commit -q -m "dist: $sha"
+            git push origin dist
+          }
+          Pop-Location

@@ -1,0 +1,73 @@
+{
+  "id": "community.file-time",
+  "name": "批量调整文件时间",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "批量修改或同步文件的创建/修改时间，支持时区偏移与从文件名日期自动提取，提交前预览确认。",
+  "runtime": "process",
+  "entry": "FileTime.exe",
+  "permissions": [
+    "fs.read",
+    "fs.write"
+  ],
+  "commands": [
+    {
+      "id": "community.file-time.adjust",
+      "title": "批量调整文件时间属性",
+      "description": "预览并批量更新文件创建时间/最后修改时间；只改时间元数据，不改动文件内容。",
+      "group": "文件",
+      "icon": "rename",
+      "order": 230,
+      "requiresPreview": true,
+      "cancellable": false,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 2000
+      },
+      "parameters": [
+        {
+          "key": "mode",
+          "label": "调整方式",
+          "type": "select",
+          "default": "同步修改时间为创建时间",
+          "options": [
+            "同步修改时间为创建时间",
+            "同步创建时间为修改时间",
+            "按小时偏移加减",
+            "指定固定时间",
+            "从文件名解析日期"
+          ]
+        },
+        {
+          "key": "targetField",
+          "label": "应用字段",
+          "type": "select",
+          "default": "同时更新创建与修改时间",
+          "options": [
+            "同时更新创建与修改时间",
+            "仅更新最后修改时间",
+            "仅更新创建时间"
+          ]
+        },
+        {
+          "key": "offsetHours",
+          "label": "偏移小时数",
+          "type": "number",
+          "default": "0",
+          "min": -87600,
+          "max": 87600,
+          "hint": "仅在「按小时偏移加减」模式生效，支持正负数。"
+        },
+        {
+          "key": "fixedTime",
+          "label": "固定时间 (YYYY-MM-DD HH:mm:ss)",
+          "type": "text",
+          "default": "",
+          "hint": "仅在「指定固定时间」模式必填，如 2026-05-01 12:00:00。"
+        }
+      ]
+    }
+  ]
+}

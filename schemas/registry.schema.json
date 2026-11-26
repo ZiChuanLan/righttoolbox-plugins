@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RightToolbox community plugin registry v1",
+  "type": "object",
+  "required": ["version", "plugins"],
+  "properties": {
+    "version": { "const": 1 },
+    "repository": { "type": "string" },
+    "distBaseUrl": { "type": "string" },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "license", "package", "summary"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,79}$" },
+          "name": { "type": "string", "minLength": 1 },
+          "author": { "type": "string" },
+          "license": { "type": "string", "minLength": 1 },
+          "group": { "type": "string" },
+          "icon": { "type": "string" },
+          "language": { "type": "string" },
+          "package": { "type": "string", "pattern": "^packages/[a-z0-9-]+$" },
+          "permissions": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "zh": { "type": "string" },
+              "en": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

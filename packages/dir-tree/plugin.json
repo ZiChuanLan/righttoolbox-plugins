@@ -1,0 +1,108 @@
+{
+  "id": "community.dir-tree",
+  "name": "目录树与文件清单",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "生成可直接粘贴到文档/README 的目录结构树，或导出含大小、时间戳和可选 SHA-256 的文件清单。",
+  "runtime": "process",
+  "entry": "DirTree.exe",
+  "permissions": [
+    "fs.read",
+    "fs.write",
+    "clipboard.write"
+  ],
+  "commands": [
+    {
+      "id": "community.dir-tree.tree",
+      "title": "生成目录结构树",
+      "description": "生成 Unicode / ASCII / Markdown 目录树并自动复制到剪贴板，可选保存为 .md 文件。",
+      "group": "实用",
+      "icon": "organize",
+      "order": 220,
+      "autoRun": true,
+      "selection": {
+        "kind": "folders",
+        "min": 1,
+        "max": 20
+      },
+      "parameters": [
+        {
+          "key": "style",
+          "label": "树状样式",
+          "type": "select",
+          "default": "Unicode 树状图",
+          "options": [
+            "Unicode 树状图",
+            "ASCII 树状图",
+            "Markdown 缩进列表"
+          ]
+        },
+        {
+          "key": "maxDepth",
+          "label": "最大遍历深度",
+          "type": "number",
+          "default": "4",
+          "min": 1,
+          "max": 12
+        },
+        {
+          "key": "includeFiles",
+          "label": "包含文件",
+          "type": "toggle",
+          "default": "true"
+        },
+        {
+          "key": "ignoreNoise",
+          "label": "忽略 .git / node_modules / bin / obj",
+          "type": "toggle",
+          "default": "true"
+        },
+        {
+          "key": "saveFile",
+          "label": "同时保存为 .md 文件",
+          "type": "toggle",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "id": "community.dir-tree.manifest",
+      "title": "导出目录文件清单",
+      "description": "递归汇总选中目录或文件的相对路径、体积、修改时间及可选 SHA-256 为 CSV / JSON。",
+      "group": "实用",
+      "icon": "folder-size",
+      "order": 221,
+      "selection": {
+        "kind": "any",
+        "min": 1,
+        "max": 500
+      },
+      "parameters": [
+        {
+          "key": "format",
+          "label": "清单格式",
+          "type": "select",
+          "default": "CSV (UTF-8 BOM)",
+          "options": [
+            "CSV (UTF-8 BOM)",
+            "JSON"
+          ]
+        },
+        {
+          "key": "includeHash",
+          "label": "计算 SHA-256 校验值",
+          "type": "toggle",
+          "default": "false",
+          "hint": "大文件较多时关闭可大幅提升速度。"
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}
