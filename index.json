@@ -1,0 +1,1842 @@
+{
+  "version": 1,
+  "packages": {
+    "community.base64-kit": {
+      "latest": "0.2.0",
+      "readme": "# Base64 / Data URI 编解码\r\n\r\n纯 C# 实现，**不需要 PowerShell / Python / Node**，与其他插件一样是真 exe。\r\n\r\n## 编码（选中文件）\r\n\r\n- 输出格式：`data:<mime>;base64,...` 或纯 Base64\r\n- 结果自动进剪贴板（由宿主写入），可同时保存 `原文件名.b64.txt`\r\n- 多选时按行拼接，超过 2 MB 会提示改用写文件\r\n\r\n## 解码（选中任意文件决定保存位置）\r\n\r\n把 Base64 或 Data URI 粘到「内容」参数里，插件会剥掉 `data:...;base64,` 前缀、忽略所有空白与换行，\r\n再按 Data URI 里的 MIME 推断扩展名（无法识别时输出 `.bin`）。\r\n\r\n## 迁移说明\r\n\r\n0.2.0 起入口从 `main.ps1` 换成 `Base64Kit.exe`，参数 key 保持兼容（`outputMode` / `saveToFile` / `outputFolder`），\r\n旧版升级到新版不会有参数错乱。\r\n",
+      "versions": {
+        "0.2.0": {
+          "file": "zips/community.base64-kit-0.2.0.zip",
+          "sha256": "027492589bd9b031de7c448ef2e0ca495242c8ecc5b03e3fcd3914d877539dd6",
+          "size": 94163,
+          "time": "2026-11-27T09:34:53Z",
+          "manifest": {
+            "id": "community.base64-kit",
+            "name": "Base64 / Data URI 编解码",
+            "version": "0.2.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "文件与 Base64 / Data URI 互转：编码结果进剪贴板或写 .b64.txt，也能把 Base64 文本还原成文件。",
+            "runtime": "process",
+            "entry": "Base64Kit.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write",
+              "clipboard.write"
+            ],
+            "commands": [
+              {
+                "id": "community.base64-kit.encode",
+                "title": "文件转 Base64 / Data URI",
+                "description": "把选中文件编码成 data:<mime>;base64,... 或纯 Base64，结果进剪贴板，可选写 .b64.txt。",
+                "group": "开发",
+                "icon": "code-format",
+                "order": 240,
+                "autoRun": true,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 20
+                },
+                "parameters": [
+                  {
+                    "key": "outputMode",
+                    "label": "编码格式",
+                    "type": "select",
+                    "default": "Data URI (含 MIME)",
+                    "options": [
+                      "Data URI (含 MIME)",
+                      "纯 Base64 字符串"
+                    ]
+                  },
+                  {
+                    "key": "saveToFile",
+                    "label": "同时保存为 .b64.txt",
+                    "type": "toggle",
+                    "default": "false"
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=原目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              },
+              {
+                "id": "community.base64-kit.decode",
+                "title": "Base64 文本还原为文件",
+                "description": "粘贴 Base64 或 Data URI，自动剥离前缀与空白并还原成文件。",
+                "group": "开发",
+                "icon": "file",
+                "order": 241,
+                "selection": {
+                  "kind": "any",
+                  "min": 1,
+                  "max": 1
+                },
+                "parameters": [
+                  {
+                    "key": "payload",
+                    "label": "Base64 或 Data URI 内容",
+                    "type": "text",
+                    "default": "",
+                    "required": true,
+                    "hint": "支持 data:image/png;base64,... 前缀，空白与换行会被忽略。"
+                  },
+                  {
+                    "key": "extension",
+                    "label": "目标扩展名（留空自动识别）",
+                    "type": "text",
+                    "default": "",
+                    "hint": "无法从 Data URI 识别时输出 .bin。"
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=选中项所在目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.clean-junk": {
+      "latest": "0.1.0",
+      "readme": "# 清理垃圾文件与空文件夹\r\n\r\n选中一个或多个文件夹 → **文件 → 清理垃圾文件与空文件夹**。\r\n\r\n## 默认清理项\r\n\r\n| 类别 | 匹配 | 默认 |\r\n| --- | --- | --- |\r\n| 缩略图/系统垃圾 | `Thumbs.db`、`ehthumbs.db`、`.DS_Store` | 开 |\r\n| 临时文件 | `*.tmp`、`*.temp`、`~$*`（Office 锁文件残留） | 开 |\r\n| 空文件夹 | 递归，先深后浅，删掉子项后变空的父文件夹不会连带删除 | 开 |\r\n| 0 字节文件 | 仅当手动勾选 | 关 |\r\n\r\n## 安全设计\r\n\r\n- `requiresPreview`：先给完整清单（文件名、路径、体积）与合计大小，确认后才删除。\r\n- 执行阶段重新校验：空文件夹必须仍然为空，文件必须仍然存在，否则跳过并记一行「已跳过」。\r\n- 跳过符号链接与联接（`ReparsePoint`），不跟进别的卷。\r\n- 递归深度上限 32，权限不足的目录静默跳过。\r\n- 不删除任何可执行文件、库或用户文档——判定只看文件名后缀与空目录状态。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.clean-junk-0.1.0.zip",
+          "sha256": "03ebf28fadbcd64c65b3d0459c3019ffbdd9c761012131b2dd7b251547a7237a",
+          "size": 96880,
+          "time": "2026-11-27T09:34:55Z",
+          "manifest": {
+            "id": "community.clean-junk",
+            "name": "清理垃圾文件与空文件夹",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "清理 Thumbs.db、.DS_Store、临时文件、0 字节文件与空文件夹，先预览确认再删除。",
+            "runtime": "process",
+            "entry": "CleanJunk.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.clean-junk.clean",
+                "title": "清理垃圾文件与空文件夹",
+                "description": "递归清理缩略图缓存、临时文件、空文件夹；先列出清单，确认后才删除。",
+                "group": "文件",
+                "icon": "trash-2",
+                "order": 270,
+                "requiresPreview": true,
+                "cancellable": false,
+                "selection": {
+                  "kind": "any",
+                  "min": 1,
+                  "max": 200
+                },
+                "parameters": [
+                  {
+                    "key": "systemNoise",
+                    "label": "缩略图与系统垃圾（Thumbs.db、.DS_Store）",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "tempFiles",
+                    "label": "临时文件（.tmp / .temp / ~$ 开头的 Office 锁文件）",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "emptyDirectories",
+                    "label": "空文件夹",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "emptyFiles",
+                    "label": "0 字节文件（谨慎：可能是占位文件）",
+                    "type": "toggle",
+                    "default": "false"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.dir-tree": {
+      "latest": "0.1.0",
+      "readme": "# 目录树与文件清单 (`community.dir-tree`)\r\n\r\n支持跳过符号链接/联接与常见依赖构建目录（`.git`、`node_modules`、`bin`、`obj`）。\r\n\r\n## 命令\r\n\r\n- **生成目录结构树** (`community.dir-tree.tree`)：支持 Unicode / ASCII / Markdown 列表并自动复制到剪贴板。\r\n- **导出目录文件清单** (`community.dir-tree.manifest`)：汇总路径、大小、修改时间及可选 SHA-256 为 CSV / JSON。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.dir-tree-0.1.0.zip",
+          "sha256": "ee92f6399544811f32d56c4a8dfc7fe5b8142b252f61f322b234d77a0bd696d7",
+          "size": 97066,
+          "time": "2026-11-27T09:34:56Z",
+          "manifest": {
+            "id": "community.dir-tree",
+            "name": "目录树与文件清单",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "生成可直接粘贴到文档/README 的目录结构树，或导出含大小、时间戳和可选 SHA-256 的文件清单。",
+            "runtime": "process",
+            "entry": "DirTree.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write",
+              "clipboard.write"
+            ],
+            "commands": [
+              {
+                "id": "community.dir-tree.tree",
+                "title": "生成目录结构树",
+                "description": "生成 Unicode / ASCII / Markdown 目录树并自动复制到剪贴板，可选保存为 .md 文件。",
+                "group": "实用",
+                "icon": "organize",
+                "order": 220,
+                "autoRun": true,
+                "selection": {
+                  "kind": "folders",
+                  "min": 1,
+                  "max": 20
+                },
+                "parameters": [
+                  {
+                    "key": "style",
+                    "label": "树状样式",
+                    "type": "select",
+                    "default": "Unicode 树状图",
+                    "options": [
+                      "Unicode 树状图",
+                      "ASCII 树状图",
+                      "Markdown 缩进列表"
+                    ]
+                  },
+                  {
+                    "key": "maxDepth",
+                    "label": "最大遍历深度",
+                    "type": "number",
+                    "default": "4",
+                    "min": 1,
+                    "max": 12
+                  },
+                  {
+                    "key": "includeFiles",
+                    "label": "包含文件",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "ignoreNoise",
+                    "label": "忽略 .git / node_modules / bin / obj",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "saveFile",
+                    "label": "同时保存为 .md 文件",
+                    "type": "toggle",
+                    "default": "false"
+                  }
+                ]
+              },
+              {
+                "id": "community.dir-tree.manifest",
+                "title": "导出目录文件清单",
+                "description": "递归汇总选中目录或文件的相对路径、体积、修改时间及可选 SHA-256 为 CSV / JSON。",
+                "group": "实用",
+                "icon": "folder-size",
+                "order": 221,
+                "selection": {
+                  "kind": "any",
+                  "min": 1,
+                  "max": 500
+                },
+                "parameters": [
+                  {
+                    "key": "format",
+                    "label": "清单格式",
+                    "type": "select",
+                    "default": "CSV (UTF-8 BOM)",
+                    "options": [
+                      "CSV (UTF-8 BOM)",
+                      "JSON"
+                    ]
+                  },
+                  {
+                    "key": "includeHash",
+                    "label": "计算 SHA-256 校验值",
+                    "type": "toggle",
+                    "default": "false",
+                    "hint": "大文件较多时关闭可大幅提升速度。"
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.file-time": {
+      "latest": "0.1.0",
+      "readme": "# 批量调整文件时间 (`community.file-time`)\r\n\r\n批量修改或同步文件的创建时间（`CreationTime`）与最后修改时间（`LastWriteTime`）。\r\n所有操作必须先经过预览阶段核对，且只修改文件系统时间戳，绝不修改文件内容。\r\n\r\n## 支持模式\r\n\r\n- 同步修改时间为创建时间 / 同步创建时间为修改时间\r\n- 按小时偏移加减（修复跨时区相机/导出时间差）\r\n- 指定固定时间（`YYYY-MM-DD HH:mm:ss`）\r\n- 从文件名自动提取日期（支持 `IMG_20260501_143022.jpg`、`2026-05-01` 等常见格式）\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.file-time-0.1.0.zip",
+          "sha256": "4552cc1da15760d69b53df864876f6b3db027af16bc7351beb30988bc7e96e72",
+          "size": 97804,
+          "time": "2026-11-27T09:34:58Z",
+          "manifest": {
+            "id": "community.file-time",
+            "name": "批量调整文件时间",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "批量修改或同步文件的创建/修改时间，支持时区偏移与从文件名日期自动提取，提交前预览确认。",
+            "runtime": "process",
+            "entry": "FileTime.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.file-time.adjust",
+                "title": "批量调整文件时间属性",
+                "description": "预览并批量更新文件创建时间/最后修改时间；只改时间元数据，不改动文件内容。",
+                "group": "文件",
+                "icon": "rename",
+                "order": 230,
+                "requiresPreview": true,
+                "cancellable": false,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 2000
+                },
+                "parameters": [
+                  {
+                    "key": "mode",
+                    "label": "调整方式",
+                    "type": "select",
+                    "default": "同步修改时间为创建时间",
+                    "options": [
+                      "同步修改时间为创建时间",
+                      "同步创建时间为修改时间",
+                      "按小时偏移加减",
+                      "指定固定时间",
+                      "从文件名解析日期"
+                    ]
+                  },
+                  {
+                    "key": "targetField",
+                    "label": "应用字段",
+                    "type": "select",
+                    "default": "同时更新创建与修改时间",
+                    "options": [
+                      "同时更新创建与修改时间",
+                      "仅更新最后修改时间",
+                      "仅更新创建时间"
+                    ]
+                  },
+                  {
+                    "key": "offsetHours",
+                    "label": "偏移小时数",
+                    "type": "number",
+                    "default": "0",
+                    "min": -87600,
+                    "max": 87600,
+                    "hint": "仅在「按小时偏移加减」模式生效，支持正负数。"
+                  },
+                  {
+                    "key": "fixedTime",
+                    "label": "固定时间 (YYYY-MM-DD HH:mm:ss)",
+                    "type": "text",
+                    "default": "",
+                    "hint": "仅在「指定固定时间」模式必填，如 2026-05-01 12:00:00。"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.gbk-fix": {
+      "latest": "0.2.0",
+      "readme": "# 乱码文件名修复\r\n\r\n纯 C# 实现（`CodePagesEncodingProvider` 提供 cp437 / GBK），**不需要 Python**。\r\n\r\n典型症状：从旧 ZIP 解压出来的 `ÖÐÎÄËµÃ÷.rar`、`µçÄÔÑ§Ï°.pdf`。\r\n\r\n原理：GBK 编码的字节被当成 cp437 或 latin-1 显示。插件把文件名按 cp437 / latin-1 还原回原始字节，\r\n再按 GBK / GB18030 / UTF-8 重新解码。往返失败或解码结果含控制字符、路径分隔符的候选会被丢弃，\r\n所以正常文件名不会被误改。\r\n\r\n## 用法\r\n\r\n1. 选中乱码文件或整个文件夹 → **文件 → 修复乱码文件名**\r\n2. 预览「原名 → 新名」，与已有文件重名的标为「冲突，将跳过」\r\n3. 确认后才改名：只改名，不移动、不删除、不改内容\r\n\r\n子项按「先深后浅」顺序改名，父目录先改名也不会让后续子项路径失效。\r\n",
+      "versions": {
+        "0.2.0": {
+          "file": "zips/community.gbk-fix-0.2.0.zip",
+          "sha256": "22f1c5bafe9e11ad9210e9bb06375c4b02a6e14148c8fd07d3561195467ae8e4",
+          "size": 99288,
+          "time": "2026-11-27T09:34:59Z",
+          "manifest": {
+            "id": "community.gbk-fix",
+            "name": "乱码文件名修复",
+            "version": "0.2.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "修复旧 ZIP、FTP 或 GBK 环境带来的中文乱码文件名（cp437 / latin-1 误解码），逐项预览后改名，冲突自动跳过。",
+            "runtime": "process",
+            "entry": "GbkFix.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.gbk-fix.repair",
+                "title": "修复乱码文件名",
+                "description": "把「ÖÐÎÄ.txt」这类乱码还原成正确的中文名，先预览再改名，只改名不动内容。",
+                "group": "文件",
+                "icon": "rename",
+                "order": 260,
+                "requiresPreview": true,
+                "cancellable": false,
+                "selection": {
+                  "kind": "any",
+                  "min": 1,
+                  "max": 5000
+                },
+                "parameters": [
+                  {
+                    "key": "sourceEncoding",
+                    "label": "乱码来源",
+                    "type": "select",
+                    "default": "自动检测",
+                    "options": [
+                      "自动检测",
+                      "cp437（ZIP 解压最常见）",
+                      "latin-1 / ISO-8859-1"
+                    ]
+                  },
+                  {
+                    "key": "targetEncoding",
+                    "label": "还原为",
+                    "type": "select",
+                    "default": "自动（GBK 优先）",
+                    "options": [
+                      "自动（GBK 优先）",
+                      "GBK",
+                      "GB18030",
+                      "UTF-8"
+                    ]
+                  },
+                  {
+                    "key": "recursive",
+                    "label": "包含子文件夹",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "includeFolders",
+                    "label": "同时重命名文件夹",
+                    "type": "toggle",
+                    "default": "true"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.id-photo": {
+      "latest": "0.1.0",
+      "readme": "# 证件照裁切\r\n\r\n选中照片 → **图片 → 裁成证件照**。\r\n\r\n| 规格 | 像素 |\r\n| --- | --- |\r\n| 一寸 | 295×413 |\r\n| 二寸 | 413×579 |\r\n| 小一寸 | 260×378 |\r\n| 大一寸 | 390×567 |\r\n\r\n## 两种处理方式\r\n\r\n- **居中裁切**（推荐）：按目标比例从图片中央取最大区域再缩放，不变形、不留边，适合本身就是人像的图。\r\n- **完整留白**：整张图等比放进目标框，多余部分用背景色填充（白/蓝/红/浅灰），适合全身照或不想裁掉内容的场景。\r\n\r\n输出 `原名_idphoto.jpg`（质量 95），原件不动。不会自动换背景（抠图需人工确认，避免把头发边缘搞坏）。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.id-photo-0.1.0.zip",
+          "sha256": "1bb5287df598755a5a57b6b88ad19488dc446dc768da5f92b1d6b8ede1bbbaa4",
+          "size": 96204,
+          "time": "2026-11-27T09:35:02Z",
+          "manifest": {
+            "id": "community.id-photo",
+            "name": "证件照裁切",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "把照片裁成一寸、二寸、小一寸、大一寸等标准证件照尺寸，居中裁切或完整留白，输出可直接上传。",
+            "runtime": "process",
+            "entry": "IdPhoto.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.id-photo.crop",
+                "title": "裁成证件照",
+                "description": "按标准规格居中裁切或完整留白，输出指定像素的证件照。",
+                "group": "图片",
+                "icon": "layers",
+                "order": 283,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 200,
+                  "extensions": [
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".bmp",
+                    ".webp",
+                    ".heic",
+                    ".heif"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "spec",
+                    "label": "规格",
+                    "type": "select",
+                    "default": "一寸 (295×413)",
+                    "options": [
+                      "一寸 (295×413)",
+                      "二寸 (413×579)",
+                      "小一寸 (260×378)",
+                      "大一寸 (390×567)",
+                      "自定义"
+                    ]
+                  },
+                  {
+                    "key": "customWidth",
+                    "label": "自定义宽 (px)",
+                    "type": "number",
+                    "default": "295",
+                    "min": 100,
+                    "max": 4000,
+                    "hint": "仅当规格选「自定义」时生效。"
+                  },
+                  {
+                    "key": "customHeight",
+                    "label": "自定义高 (px)",
+                    "type": "number",
+                    "default": "413",
+                    "min": 100,
+                    "max": 4000
+                  },
+                  {
+                    "key": "mode",
+                    "label": "处理方式",
+                    "type": "select",
+                    "default": "居中裁切（推荐）",
+                    "options": [
+                      "居中裁切（推荐）",
+                      "完整留白"
+                    ]
+                  },
+                  {
+                    "key": "background",
+                    "label": "留白背景色",
+                    "type": "select",
+                    "default": "白色",
+                    "options": [
+                      "白色",
+                      "蓝色",
+                      "红色",
+                      "浅灰"
+                    ]
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=原目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.image-collage": {
+      "latest": "0.1.0",
+      "readme": "# 拼长图 / 九宫格\r\n\r\n按资源管理器的选中顺序拼接（选中顺序即拼接顺序）→ **图片 → 拼接图片**。\r\n\r\n| 拼接方式 | 适合 |\r\n| --- | --- |\r\n| 竖向长图 | 聊天记录、网页长截图、流程图 |\r\n| 横向长图 | 对比图、时间线 |\r\n| 九宫格 (3×3) | 朋友圈/小红书九宫格 |\r\n| 四宫格 (2×2) | 商品细节、对比展示 |\r\n\r\n## 规则\r\n\r\n- **等比留白，不裁切**：图片按「完整可见」缩放到单元格内，多余空间用背景色填充，不会切掉内容。\r\n- **背景色**：白 / 黑 / 浅灰 / 透明。选透明时输出 PNG，其余输出 JPEG（质量 92）。\r\n- **尺寸保护**：成品最长边默认 4000px、总像素上限约 1 亿；超出时整体等比缩小，而不是报错。\r\n- 输出文件名形如 `第一张图_collage.jpg`，永不覆盖已有文件。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.image-collage-0.1.0.zip",
+          "sha256": "3011deb56b3de5c662768865d3e9174b8cfc0538daa289d807da87884470f7cd",
+          "size": 98858,
+          "time": "2026-11-27T09:35:03Z",
+          "manifest": {
+            "id": "community.image-collage",
+            "name": "拼长图 / 九宫格",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "把多张图片拼成竖向长图、横向长图、九宫格或四宫格，适合拼聊天记录、网页长截图、产品图与朋友圈九宫格。",
+            "runtime": "process",
+            "entry": "ImageCollage.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.image-collage.compose",
+                "title": "拼接图片",
+                "description": "按顺序拼成竖图/横图或宫格，等比留白不裁切，输出单张成品图。",
+                "group": "图片",
+                "icon": "layers",
+                "order": 281,
+                "selection": {
+                  "kind": "files",
+                  "min": 2,
+                  "max": 99,
+                  "extensions": [
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".bmp",
+                    ".gif",
+                    ".tif",
+                    ".tiff",
+                    ".webp",
+                    ".heic",
+                    ".heif"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "layout",
+                    "label": "拼接方式",
+                    "type": "select",
+                    "default": "竖向长图",
+                    "options": [
+                      "竖向长图",
+                      "横向长图",
+                      "九宫格 (3×3)",
+                      "四宫格 (2×2)"
+                    ]
+                  },
+                  {
+                    "key": "gap",
+                    "label": "图片间距 (px)",
+                    "type": "number",
+                    "default": "8",
+                    "min": 0,
+                    "max": 200
+                  },
+                  {
+                    "key": "background",
+                    "label": "背景颜色",
+                    "type": "select",
+                    "default": "白色",
+                    "options": [
+                      "白色",
+                      "黑色",
+                      "灰色",
+                      "透明"
+                    ]
+                  },
+                  {
+                    "key": "maxEdge",
+                    "label": "成品最长边 (px)",
+                    "type": "number",
+                    "default": "4000",
+                    "min": 500,
+                    "max": 12000,
+                    "hint": "超出时整体等比缩小，避免生成打不开的超大图。"
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=第一张图所在目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.image-frame": {
+      "latest": "0.1.0",
+      "readme": "# 批量加边框 / 圆角\r\n\r\n选中图片 → **图片 → 加边框 / 圆角**。\r\n\r\n| 样式 | 效果 | 输出 |\r\n| --- | --- | --- |\r\n| 白边（打印留白） | 四边等宽白边，打印不裁到内容 | JPEG |\r\n| 拍立得边框 | 白边 + 底部三倍留白（可写字） | JPEG |\r\n| 细黑边 | 黑色细描边，方便浅色背景上看出边界 | JPEG |\r\n| 圆角（透明） | 按短边百分比切圆角，四角透明 | PNG |\r\n\r\n## 自适应宽度\r\n\r\n边框宽度 = **图片长边 × 百分比**（默认 4%，范围 0–20）。所以 4000px 大图和 400px 小图看起来比例一致，不会出现「小图被白边吃掉」或「大图只有一条线」。\r\n\r\n圆角半径 = **短边 × 百分比**（默认 8%，范围 2–50）。\r\n\r\n输出 `原名_frame.jpg` 或 `原名_frame.png`，原件不动。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.image-frame-0.1.0.zip",
+          "sha256": "15ad5018f1e8d1f4c63c1ee3ead66502b83e120c0b5327cb952cd76bf73e56db",
+          "size": 96347,
+          "time": "2026-11-27T09:35:04Z",
+          "manifest": {
+            "id": "community.image-frame",
+            "name": "批量加边框 / 圆角",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "给图片批量加白边、拍立得边框、细黑边或圆角（透明背景），适合做头像、打印留白与统一排版。",
+            "runtime": "process",
+            "entry": "ImageFrame.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.image-frame.apply",
+                "title": "加边框 / 圆角",
+                "description": "白边、拍立得、细黑边或圆角透明，宽度按图片长边百分比自适应。",
+                "group": "图片",
+                "icon": "layers",
+                "order": 287,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 500,
+                  "extensions": [
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".bmp",
+                    ".gif",
+                    ".tif",
+                    ".tiff",
+                    ".webp",
+                    ".heic",
+                    ".heif"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "style",
+                    "label": "边框样式",
+                    "type": "select",
+                    "default": "白边（打印留白）",
+                    "options": [
+                      "白边（打印留白）",
+                      "拍立得边框",
+                      "细黑边",
+                      "圆角（透明）"
+                    ]
+                  },
+                  {
+                    "key": "borderPercent",
+                    "label": "边框宽度（占长边 %）",
+                    "type": "number",
+                    "default": "4",
+                    "min": 0,
+                    "max": 20,
+                    "hint": "白边/拍立得/黑边生效；圆角样式忽略此项。"
+                  },
+                  {
+                    "key": "radiusPercent",
+                    "label": "圆角半径（占短边 %）",
+                    "type": "number",
+                    "default": "8",
+                    "min": 2,
+                    "max": 50,
+                    "hint": "仅圆角样式生效。"
+                  },
+                  {
+                    "key": "color",
+                    "label": "边框颜色",
+                    "type": "select",
+                    "default": "白色",
+                    "options": [
+                      "白色",
+                      "黑色",
+                      "米色"
+                    ]
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=原目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.image-orient": {
+      "latest": "0.1.0",
+      "readme": "# 照片方向修正\r\n\r\n选中照片 → **图片 → 修正照片方向**。\r\n\r\n## 为什么会歪\r\n\r\n手机拍照时把方向写进 EXIF（Orientation 0x0112），文件本身是横躺的。浏览器和手机相册会按 EXIF 转正，\r\n但资源管理器缩略图、很多老软件不认，于是你就看到横着或倒着的图。\r\n\r\n## 自动模式\r\n\r\n按 EXIF 的 8 种取值做对应变换（不处理 / 左右镜像 / 180° / 上下镜像 / 顺时针 90° / 逆时针 90° 及两种转置组合）。\r\n\r\n- 方向本来就正确的图（EXIF=1 或无 EXIF）**不会产生副本**，结果表格标「无需改动」。\r\n- 每张图按自己的 EXIF 独立判断，批量处理不同朝向的照片不会串。\r\n\r\n## 手动模式\r\n\r\n顺时针 90° / 逆时针 90° / 180°，可叠加水平或垂直镜像——用于 EXIF 丢失或标错的文件。\r\n\r\n## 输出\r\n\r\n`原名_oriented.jpg`（PNG 输入仍输出 PNG 保留透明），质量 95，原件不动。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.image-orient-0.1.0.zip",
+          "sha256": "4a9b18805af8c1e1038b23b893cebc579622fe694acf12f28cf00475b5f7d980",
+          "size": 97291,
+          "time": "2026-11-27T09:35:06Z",
+          "manifest": {
+            "id": "community.image-orient",
+            "name": "照片方向修正",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "按 EXIF 方向信息自动把手机照片转正，或手动旋转 90°/180°与左右上下镜像；资源管理器里歪着的图一次修好。",
+            "runtime": "process",
+            "entry": "ImageOrient.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.image-orient.fix",
+                "title": "修正照片方向",
+                "description": "自动读取 EXIF 方向并转正，也可指定旋转与镜像；方向本来就对的图不会产生多余副本。",
+                "group": "图片",
+                "icon": "rotate-ccw",
+                "order": 286,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 500,
+                  "extensions": [
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".bmp",
+                    ".tif",
+                    ".tiff",
+                    ".webp",
+                    ".heic",
+                    ".heif"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "action",
+                    "label": "旋转方式",
+                    "type": "select",
+                    "default": "自动（按 EXIF 修正）",
+                    "options": [
+                      "自动（按 EXIF 修正）",
+                      "顺时针旋转 90°",
+                      "逆时针旋转 90°",
+                      "旋转 180°"
+                    ]
+                  },
+                  {
+                    "key": "flip",
+                    "label": "翻转",
+                    "type": "select",
+                    "default": "不翻转",
+                    "options": [
+                      "不翻转",
+                      "水平翻转（左右镜像）",
+                      "垂直翻转（上下镜像）"
+                    ]
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=原目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.image-shrink": {
+      "latest": "0.1.0",
+      "readme": "# 图片压到指定大小\r\n\r\n选中一张或多张图片 → **图片 → 压缩到指定大小**。典型用途：报名系统要求「照片不超过 200KB」、表单限制 2MB、微信发原图前瘦身。\r\n\r\n## 策略\r\n\r\n1. 先保持原尺寸，从 quality 92 一路降到 25 试编码，够小就收工——尽量保住清晰度。\r\n2. 质量降到底还不够，才按 0.85 → 0.25 的比例逐档缩小尺寸，每档重新走一遍质量梯度。\r\n3. 达标立即写盘，绝不二次压缩已有输出；原件永远不动，输出名形如 `photo_squeezed.jpg`。\r\n\r\n透明 PNG 会先合成到白底（JPEG 不支持透明），避免出现黑底。输出统一为 JPEG。\r\n\r\n## 参数\r\n\r\n| 参数 | 说明 |\r\n| --- | --- |\r\n| 目标大小 | 100KB / 200KB / 500KB / 1MB / 2MB / 自定义 |\r\n| 自定义上限 | 仅「自定义」时生效，10–20480 KB |\r\n| 最长边限制 | 可选，先把超长边等比缩到上限再压 |\r\n| 输出文件夹 | 留空则与原图同目录 |\r\n\r\n结果表格会写明「原大小 → 新大小（质量、最终分辨率）」，方便判断是否压过头。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.image-shrink-0.1.0.zip",
+          "sha256": "6029ee9f29810a1566bd28bdcd06749916855d06d2f0eaa7c1284e940856a064",
+          "size": 97775,
+          "time": "2026-11-27T09:35:07Z",
+          "manifest": {
+            "id": "community.image-shrink",
+            "name": "图片压到指定大小",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "把图片压到指定体积（100KB / 200KB / 500KB / 1MB / 2MB 或自定义），自动调质量与尺寸，适合上传报名、证件、表单系统。",
+            "runtime": "process",
+            "entry": "ImageShrink.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.image-shrink.squeeze",
+                "title": "压缩到指定大小",
+                "description": "先降 JPEG 质量、再按需缩小尺寸，直到体积达标；输出新文件，原件不动。",
+                "group": "图片",
+                "icon": "image",
+                "order": 280,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 500,
+                  "extensions": [
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".bmp",
+                    ".gif",
+                    ".tif",
+                    ".tiff",
+                    ".webp",
+                    ".heic",
+                    ".heif"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "target",
+                    "label": "目标大小",
+                    "type": "select",
+                    "default": "200 KB",
+                    "options": [
+                      "100 KB",
+                      "200 KB",
+                      "500 KB",
+                      "1 MB",
+                      "2 MB",
+                      "自定义"
+                    ]
+                  },
+                  {
+                    "key": "customKb",
+                    "label": "自定义上限 (KB)",
+                    "type": "number",
+                    "default": "200",
+                    "min": 10,
+                    "max": 20480,
+                    "hint": "仅当目标大小选「自定义」时生效。"
+                  },
+                  {
+                    "key": "maxEdge",
+                    "label": "最长边限制",
+                    "type": "select",
+                    "default": "不限制",
+                    "options": [
+                      "不限制",
+                      "1920 px",
+                      "1600 px",
+                      "1280 px",
+                      "1080 px",
+                      "800 px"
+                    ]
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=原目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.image-watermark": {
+      "latest": "0.1.0",
+      "readme": "# 批量加文字水印\r\n\r\n选中图片 → **图片 → 批量加文字水印**。\r\n\r\n## 位置\r\n\r\n右下角 / 左下角 / 右上角 / 左上角 / 居中 / 平铺（-30° 斜向密铺，适合样图、报价单）。\r\n\r\n## 细节\r\n\r\n- **字号自适应**：按图片宽度封顶（宽度 ÷ 8），100px 宽的小图不会被打成全屏字。\r\n- **不透明度**：5%–100%，默认 45%，既能看清又不遮内容。\r\n- **白底合成**：透明 PNG 先铺白底再画水印，转 JPEG 不会出现黑块。\r\n- **输出**：`原名_watermark.jpg`（质量 92），原件不动，同名自动加序号。\r\n\r\n结果表格会列出每张图的位置、颜色、不透明度与输出体积。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.image-watermark-0.1.0.zip",
+          "sha256": "694bcdbfb42855015383ba0e6a6f845efec500116b7cf958bb803037ceb539bf",
+          "size": 96705,
+          "time": "2026-11-27T09:35:08Z",
+          "manifest": {
+            "id": "community.image-watermark",
+            "name": "批量加文字水印",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "给图片批量加文字水印：四角、居中或斜向平铺，可调字号、不透明度与颜色，适合发群、闲鱼、公众号防搬运。",
+            "runtime": "process",
+            "entry": "ImageWatermark.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.image-watermark.apply",
+                "title": "批量加文字水印",
+                "description": "按位置与透明度批量打文字水印，输出新文件，原件不动。",
+                "group": "图片",
+                "icon": "star",
+                "order": 282,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 500,
+                  "extensions": [
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".bmp",
+                    ".gif",
+                    ".tif",
+                    ".tiff",
+                    ".webp",
+                    ".heic",
+                    ".heif"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "text",
+                    "label": "水印文字",
+                    "type": "text",
+                    "default": "",
+                    "required": true,
+                    "hint": "最多 60 个字符，支持中文。"
+                  },
+                  {
+                    "key": "position",
+                    "label": "位置",
+                    "type": "select",
+                    "default": "右下角",
+                    "options": [
+                      "右下角",
+                      "左下角",
+                      "右上角",
+                      "左上角",
+                      "居中",
+                      "平铺"
+                    ]
+                  },
+                  {
+                    "key": "fontSize",
+                    "label": "字号",
+                    "type": "number",
+                    "default": "36",
+                    "min": 10,
+                    "max": 200,
+                    "hint": "图片较窄时会自动缩小，避免盖住整张图。"
+                  },
+                  {
+                    "key": "opacity",
+                    "label": "不透明度 (%)",
+                    "type": "number",
+                    "default": "45",
+                    "min": 5,
+                    "max": 100
+                  },
+                  {
+                    "key": "color",
+                    "label": "颜色",
+                    "type": "select",
+                    "default": "白色",
+                    "options": [
+                      "白色",
+                      "黑色",
+                      "灰色",
+                      "红色"
+                    ]
+                  },
+                  {
+                    "key": "margin",
+                    "label": "边距 (px)",
+                    "type": "number",
+                    "default": "32",
+                    "min": 0,
+                    "max": 500
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=原目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.json-format": {
+      "latest": "0.2.0",
+      "readme": "# JSON 批量格式化\r\n\r\n纯 C# 实现（`System.Text.Json`），**不需要 Node.js**。\r\n\r\n选中 `.json` / `.jsonc` / `.webmanifest` → **开发 → 格式化 JSON 文件**。\r\n\r\n- **美化（2 / 4 空格）**：保留原 CRLF/LF 风格与 UTF-8 BOM\r\n- **压缩为单行**：去掉全部空白\r\n- **按字母排序键后美化**：递归按键名排序\r\n- **仅校验，不写回**：只报告语法问题\r\n\r\n中文不会被转义成 \\uXXXX（使用 UnsafeRelaxedJsonEscaping）；支持注释与尾随逗号（`.jsonc`）。\r\n\r\n预览阶段列出每个文件能否处理，确认后才写回；默认生成 `.bak`，同名备份已存在时不再覆盖。\r\n",
+      "versions": {
+        "0.2.0": {
+          "file": "zips/community.json-format-0.2.0.zip",
+          "sha256": "32e197868f18d47cd3b0cc4f32405eba0af6bf938953832bb9606a17e4c38396",
+          "size": 97095,
+          "time": "2026-11-27T09:35:09Z",
+          "manifest": {
+            "id": "community.json-format",
+            "name": "JSON 批量格式化",
+            "version": "0.2.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "批量美化、压缩、校验 JSON 文件，或按键名递归排序后重排；写回前逐项预览，可选保留 .bak 备份。",
+            "runtime": "process",
+            "entry": "JsonFormat.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.json-format.apply",
+                "title": "格式化 JSON 文件",
+                "description": "批量美化（2/4 空格）、压缩成单行、按键排序或仅校验 JSON，先预览再写回。",
+                "group": "开发",
+                "icon": "code-format",
+                "order": 210,
+                "requiresPreview": true,
+                "cancellable": false,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 2000,
+                  "extensions": [
+                    ".json",
+                    ".jsonc",
+                    ".webmanifest"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "mode",
+                    "label": "处理方式",
+                    "type": "select",
+                    "default": "美化（2 空格）",
+                    "options": [
+                      "美化（2 空格）",
+                      "美化（4 空格）",
+                      "压缩为单行",
+                      "按字母排序键后美化",
+                      "仅校验，不写回"
+                    ]
+                  },
+                  {
+                    "key": "backup",
+                    "label": "保留 .bak 备份",
+                    "type": "toggle",
+                    "default": "true"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.pdf-merge": {
+      "latest": "0.1.0",
+      "readme": "# PDF 合并 / 拆分 / 提取\r\n\r\n选中 PDF → **文档 → PDF 合并 / 拆分 / 提取**。\r\n\r\n| 处理方式 | 结果 |\r\n| --- | --- |\r\n| 合并为一个 PDF | 按选中顺序合并成 `第一个文件_merged.pdf`（至少选两个） |\r\n| 每页拆成单独文件 | 每个 PDF 拆成 `原名_page01.pdf`、`原名_page02.pdf`… |\r\n| 提取指定页码 | 按 `1-3,5` 这样的范围抽出 `原名_extract.pdf`，留空表示全部页 |\r\n\r\n## 页码写法\r\n\r\n- `3` 单页\r\n- `1-5` 连续范围\r\n- `1-3,7,9-10` 混合，自动去重并升序\r\n- 超出范围的页码会被裁掉；全部越界则明确报错不会产出空文件\r\n\r\n## 说明\r\n\r\n依赖 [PDFsharp](https://github.com/empira/PDFsharp)（MIT）。合并走「导入页面再输出」，不会重新压缩原有内容，\r\n所以文字仍是文字、图片仍是图片；不加密、不修改原有页面内容。\r\n\r\n首次构建会从 nuget.org 还原 PDFsharp（仓库根已有 `NuGet.Config`）。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.pdf-merge-0.1.0.zip",
+          "sha256": "e23ce0c1e33a7985e7d691f3c8cd9626ef348fc6f314f0ae07a7031df3b5b88e",
+          "size": 923758,
+          "time": "2026-11-27T09:35:13Z",
+          "manifest": {
+            "id": "community.pdf-merge",
+            "name": "PDF 合并 / 拆分 / 提取",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "把多个 PDF 合并成一个、把每个 PDF 按页拆成单页，或提取指定页码；扫描件、发票、合同的常见整理需求。",
+            "runtime": "process",
+            "entry": "PdfMerge.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.pdf-merge.apply",
+                "title": "PDF 合并 / 拆分 / 提取",
+                "description": "合并多个 PDF、按页拆分、或按 1-3,5 这样的页码范围提取。",
+                "group": "文档",
+                "icon": "layers",
+                "order": 289,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 200,
+                  "extensions": [
+                    ".pdf"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "action",
+                    "label": "处理方式",
+                    "type": "select",
+                    "default": "合并为一个 PDF",
+                    "options": [
+                      "合并为一个 PDF",
+                      "每页拆成单独文件",
+                      "提取指定页码"
+                    ]
+                  },
+                  {
+                    "key": "pages",
+                    "label": "页码范围",
+                    "type": "text",
+                    "default": "",
+                    "hint": "仅「提取指定页码」使用，例如 1-3,5；留空表示全部页。"
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹（留空=原目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.photo-dedupe": {
+      "latest": "0.1.0",
+      "readme": "# 相似照片清理\r\n\r\n选中相册文件夹 → **图片 → 查找相似照片**。\r\n\r\n## 原理\r\n\r\n每张图缩到 9×8 灰度并计算 **dHash**（64 位差异哈希）。两张图的汉明距离 ≤ 阈值就算相似——\r\n所以它认得出「同一张照片被微信压过、被裁过、被改过尺寸」，而不只是字节完全相同的文件（那部分内置的「查找重复文件」已经做了）。\r\n\r\n## 分组与保留规则\r\n\r\n每组按 **像素总数 → 文件体积 → 文件名** 排序，保留第一张（最清晰的那张），其余视为重复。\r\n\r\n## 两种处理方式\r\n\r\n- **只分组检测**（默认）：只给分组结果，不动任何文件。\r\n- **重复项移到 _duplicates**：每组重复项移到「保留图所在目录/_duplicates/」，同名自动加序号。是移动不是删除，随时能捡回来。\r\n\r\n## 限制\r\n\r\n- 单次上限 4000 张，超过请分批（避免一次扫整块盘卡住）。\r\n- 无法解码的文件（损坏、缺 HEIF 扩展）静默跳过。\r\n- 截图、纯色图彼此容易误判，处理前看一眼分组结果。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.photo-dedupe-0.1.0.zip",
+          "sha256": "27bb847599f9e67cf71af5129f71edd5a6c51ec210da15f8c0f61c9f94388b22",
+          "size": 101413,
+          "time": "2026-11-27T09:35:14Z",
+          "manifest": {
+            "id": "community.photo-dedupe",
+            "name": "相似照片清理",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "用感知哈希找出相似照片（连拍、转发压缩、改过尺寸都能认出），每组保留最高清的一张，其余可移入 _duplicates。",
+            "runtime": "process",
+            "entry": "PhotoDedupe.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.photo-dedupe.scan",
+                "title": "查找相似照片",
+                "description": "按感知哈希分组相似照片，先给分组结果，确认后再把多余副本移到 _duplicates。",
+                "group": "图片",
+                "icon": "search",
+                "order": 284,
+                "requiresPreview": true,
+                "cancellable": false,
+                "selection": {
+                  "kind": "any",
+                  "min": 1,
+                  "max": 50
+                },
+                "parameters": [
+                  {
+                    "key": "threshold",
+                    "label": "相似度阈值（越小越严格）",
+                    "type": "number",
+                    "default": "8",
+                    "min": 0,
+                    "max": 20,
+                    "hint": "0 = 几乎完全一致；8 = 默认，能认出压缩与轻微裁剪；20 = 很宽松。"
+                  },
+                  {
+                    "key": "includeSubfolders",
+                    "label": "包含子文件夹",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "action",
+                    "label": "处理方式",
+                    "type": "select",
+                    "default": "只分组检测",
+                    "options": [
+                      "只分组检测",
+                      "重复项移到 _duplicates"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.photo-import": {
+      "latest": "0.1.0",
+      "readme": "# 手机照片整理\r\n\r\n选中手机导入的照片文件夹 → **图片 → 整理手机照片**。\r\n\r\n## 一次解决导入后的三个麻烦\r\n\r\n1. **HEIC 打不开** → 自动转 JPG（HEIC / HEIF / WebP / TIFF / BMP；PNG 保持原样，避免丢透明）。\r\n2. **IMG_1234 完全看不懂** → 按 EXIF 拍摄时间重命名为 `20260101_143000.jpg`，没有 EXIF 时用文件修改时间。\r\n3. **几千张堆在一个文件夹** → 自动分到 `2026/01/` 这样的年/月子目录。\r\n\r\n还能顺手压到 ≤200KB / 500KB / 1MB / 2MB，适合直接发微信或上传。\r\n\r\n## 安全设计\r\n\r\n- `requiresPreview`：先列出「源文件 → 目标路径 + 动作」，确认后才动手。\r\n- 移动而不是复制，避免照片翻倍；但原件路径在预览里写得很清楚。\r\n- 目标已存在时自动加 `(1)` 序号，绝不覆盖已有照片。\r\n- 转换失败（例如缺 HEIF 扩展）只影响那一张，结果表格标「失败」并写明原因，其余照片照常整理。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.photo-import-0.1.0.zip",
+          "sha256": "df0dbc67a46b87ea2e725308d1f429fd848e57bd4827810249ef21345ff77432",
+          "size": 101444,
+          "time": "2026-11-27T09:35:15Z",
+          "manifest": {
+            "id": "community.photo-import",
+            "name": "手机照片整理",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "把手机导入的照片按拍摄日期改名、分年/月归档，HEIC/WebP/TIFF 自动转 JPG，可选压到指定大小；先预览再移动。",
+            "runtime": "process",
+            "entry": "PhotoImport.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.photo-import.organize",
+                "title": "整理手机照片",
+                "description": "按拍摄时间重命名 + 年/月归档 + HEIC 转 JPG + 可选压缩，预览确认后移动原件。",
+                "group": "图片",
+                "icon": "folder",
+                "order": 285,
+                "requiresPreview": true,
+                "cancellable": false,
+                "selection": {
+                  "kind": "any",
+                  "min": 1,
+                  "max": 200
+                },
+                "parameters": [
+                  {
+                    "key": "naming",
+                    "label": "命名方式",
+                    "type": "select",
+                    "default": "按拍摄日期命名 (20260101_143000)",
+                    "options": [
+                      "按拍摄日期命名 (20260101_143000)",
+                      "日期前缀 + 原名",
+                      "保留原名"
+                    ]
+                  },
+                  {
+                    "key": "archive",
+                    "label": "归档方式",
+                    "type": "select",
+                    "default": "按年/月归档 (2026/01)",
+                    "options": [
+                      "按年/月归档 (2026/01)",
+                      "按年归档 (2026)",
+                      "不归档"
+                    ]
+                  },
+                  {
+                    "key": "toJpeg",
+                    "label": "HEIC/WebP/TIFF 转成 JPG",
+                    "type": "toggle",
+                    "default": "true",
+                    "hint": "需要系统已安装「HEIF 图像扩展」；PNG 不会转 JPG。"
+                  },
+                  {
+                    "key": "shrink",
+                    "label": "同时压缩到",
+                    "type": "select",
+                    "default": "不压缩",
+                    "options": [
+                      "不压缩",
+                      "≤200 KB",
+                      "≤500 KB",
+                      "≤1 MB",
+                      "≤2 MB"
+                    ]
+                  },
+                  {
+                    "key": "includeSubfolders",
+                    "label": "包含子文件夹",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "outputRoot",
+                    "label": "输出根目录（留空=各文件原目录）",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.qr-code": {
+      "latest": "0.1.0",
+      "readme": "# 生成二维码\r\n\r\n选中任意文件或文件夹（只用来决定保存位置）→ **图片 → 生成二维码**。\r\n\r\n## 用途\r\n\r\n- 网址变二维码，发群里让别人扫\r\n- 一段长文字/收货地址，扫码即复制\r\n- WiFi 免密输入：内容填 `WIFI:T:WPA;S:热点名;P:密码;;`\r\n- 名片、群号、票号等固定文本\r\n\r\n## 参数\r\n\r\n| 参数 | 说明 |\r\n| --- | --- |\r\n| 内容 | 最多 1200 字符（再长二维码会密到扫不动） |\r\n| 边长 | 96–4096 px，实际尺寸按模块数向上取整，保证每个模块是完整像素 |\r\n| 纠错级别 | L 7% / M 15% / Q 25% / H 30%，越高越耐污损但同样内容更密 |\r\n| 前景色 | 黑 / 深蓝 / 深绿 / 红（背景固定白，保证对比度） |\r\n| 文件名 | 默认 `qrcode.png`，同名自动加序号 |\r\n\r\n依赖 [QRCoder](https://github.com/codebude/QRCoder)（MIT），PNG 由它自己编码，不依赖 System.Drawing。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.qr-code-0.1.0.zip",
+          "sha256": "a0e312dd6da0b7b860cae9b3cd82c37573aca40d2b65ab9469b305c27eee4d19",
+          "size": 156728,
+          "time": "2026-11-27T09:35:17Z",
+          "manifest": {
+            "id": "community.qr-code",
+            "name": "生成二维码",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "把网址、一段文字或 WiFi 连接信息生成二维码图片，可选尺寸、纠错级别与颜色，直接存到当前文件夹。",
+            "runtime": "process",
+            "entry": "QrCodeGen.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.qr-code.generate",
+                "title": "生成二维码",
+                "description": "填内容 → 出 PNG 二维码；选中文件或文件夹决定保存位置。",
+                "group": "图片",
+                "icon": "code",
+                "order": 288,
+                "selection": {
+                  "kind": "any",
+                  "min": 1,
+                  "max": 1
+                },
+                "parameters": [
+                  {
+                    "key": "content",
+                    "label": "二维码内容",
+                    "type": "text",
+                    "default": "",
+                    "required": true,
+                    "hint": "网址、文字都行；WiFi 可用 WIFI:T:WPA;S:热点名;P:密码;; 格式。"
+                  },
+                  {
+                    "key": "size",
+                    "label": "图片边长 (px)",
+                    "type": "number",
+                    "default": "512",
+                    "min": 96,
+                    "max": 4096
+                  },
+                  {
+                    "key": "level",
+                    "label": "纠错级别",
+                    "type": "select",
+                    "default": "M (15%)",
+                    "options": [
+                      "L (7%)",
+                      "M (15%)",
+                      "Q (25%)",
+                      "H (30%)"
+                    ],
+                    "hint": "级别越高越耐脏/耐遮挡，但同等内容下二维码更密。"
+                  },
+                  {
+                    "key": "darkColor",
+                    "label": "前景色",
+                    "type": "select",
+                    "default": "黑色",
+                    "options": [
+                      "黑色",
+                      "深蓝",
+                      "深绿",
+                      "红色"
+                    ]
+                  },
+                  {
+                    "key": "fileName",
+                    "label": "文件名",
+                    "type": "text",
+                    "default": "qrcode.png"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.table-convert": {
+      "latest": "0.1.0",
+      "readme": "# 表格与数据转换 (`community.table-convert`)\r\n\r\nRFC 4180 完整引号与内嵌换行支持，自动识别 UTF-8 / UTF-16 / GBK 编码。\r\n\r\n## 命令\r\n\r\n- **CSV / TSV 转 JSON / Markdown** (`community.table-convert.csv-to-other`)\r\n- **JSON 数组导出为 CSV** (`community.table-convert.json-to-csv`)：写入 UTF-8 BOM，Excel 双击无乱码。\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.table-convert-0.1.0.zip",
+          "sha256": "68808814e00bd9d2506a4fc3a7709253726a082933ddba1c072f16ebf66479b0",
+          "size": 94816,
+          "time": "2026-11-27T09:35:19Z",
+          "manifest": {
+            "id": "community.table-convert",
+            "name": "表格与数据转换",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "CSV / TSV 转 JSON 对象数组、Markdown 表格与 UTF-8 BOM CSV，以及 JSON 数组导出为 CSV。",
+            "runtime": "process",
+            "entry": "TableConvert.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.table-convert.csv-to-other",
+                "title": "CSV / TSV 转 JSON / Markdown",
+                "description": "完整支持引号转义、内嵌换行与中文编码，转为 JSON、Markdown 表格或 Excel UTF-8 BOM CSV。",
+                "group": "数据",
+                "icon": "code-format",
+                "order": 210,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 200,
+                  "extensions": [
+                    ".csv",
+                    ".tsv"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "targetFormat",
+                    "label": "目标格式",
+                    "type": "select",
+                    "default": "JSON 对象数组",
+                    "options": [
+                      "JSON 对象数组",
+                      "Markdown 表格",
+                      "TSV (制表符分隔)",
+                      "CSV (UTF-8 BOM)"
+                    ]
+                  },
+                  {
+                    "key": "hasHeader",
+                    "label": "首行为表头",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹",
+                    "type": "folder",
+                    "default": "",
+                    "hint": "留空保存到原文件夹；始终保留原件。"
+                  }
+                ]
+              },
+              {
+                "id": "community.table-convert.json-to-csv",
+                "title": "JSON 数组导出为 CSV",
+                "description": "将 JSON 对象数组导出为 Excel 可直接双击打开的 UTF-8 BOM CSV 表格。",
+                "group": "数据",
+                "icon": "code-format",
+                "order": 211,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 200,
+                  "extensions": [
+                    ".json"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.text-ops": {
+      "latest": "0.1.0",
+      "readme": "# 文本批处理工具 (`community.text-ops`)\r\n\r\n通用文本批量处理插件，全部本地离线运行，不覆写原文件。\r\n\r\n## 包含命令\r\n\r\n- **文本字数与行数统计** (`community.text-ops.stats`)：统计总行数、非空行、字符数、词数（支持中文按字与英文按词计数）、编码（UTF-8 / BOM / UTF-16 / GBK）与换行符格式。\r\n- **文本去重与排序清理** (`community.text-ops.cleanup`)：支持按行去重、字典序/长度排序、清理首尾空白与移除空行，输出为 `*_clean` 新文件。\r\n- **多文本文件顺序合并** (`community.text-ops.merge`)：按选中顺序合并多个文本、日志或 Markdown 文件，可选文件名分隔头。\r\n\r\n## 测试\r\n\r\n```powershell\r\n..\\..\\scripts\\check.ps1 text-ops\r\n..\\..\\scripts\\test.ps1 text-ops\r\n```\r\n",
+      "versions": {
+        "0.1.0": {
+          "file": "zips/community.text-ops-0.1.0.zip",
+          "sha256": "d550821d6e86791639dd6eca00f73b9e8fe2298ab0e9c1b4d475dc272e8d0cc5",
+          "size": 95212,
+          "time": "2026-11-27T09:35:20Z",
+          "manifest": {
+            "id": "community.text-ops",
+            "name": "文本批处理工具",
+            "version": "0.1.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "文本行数与字数统计、去重排序与空行清理、多文本文件顺序合并。",
+            "runtime": "process",
+            "entry": "TextOps.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.text-ops.stats",
+                "title": "文本字数与行数统计",
+                "description": "只读统计文本行数、非空行、字符数、词数、换行格式与编码。",
+                "group": "文本",
+                "icon": "text-encoding",
+                "order": 200,
+                "autoRun": true,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 500,
+                  "extensions": [
+                    ".txt",
+                    ".md",
+                    ".csv",
+                    ".tsv",
+                    ".log",
+                    ".json",
+                    ".xml",
+                    ".yaml",
+                    ".yml",
+                    ".ini",
+                    ".conf",
+                    ".sql",
+                    ".html",
+                    ".css",
+                    ".js",
+                    ".ts",
+                    ".cs",
+                    ".py",
+                    ".cpp",
+                    ".h",
+                    ".java"
+                  ]
+                }
+              },
+              {
+                "id": "community.text-ops.cleanup",
+                "title": "文本去重与排序清理",
+                "description": "按行去重、升序/降序排列、剔除空行或首尾空白，生成新副本保留原件。",
+                "group": "文本",
+                "icon": "code-format",
+                "order": 201,
+                "selection": {
+                  "kind": "files",
+                  "min": 1,
+                  "max": 200,
+                  "extensions": [
+                    ".txt",
+                    ".md",
+                    ".csv",
+                    ".tsv",
+                    ".log",
+                    ".ini",
+                    ".conf"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "dedupe",
+                    "label": "去除重复行",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "sortMode",
+                    "label": "排序方式",
+                    "type": "select",
+                    "default": "保持原序",
+                    "options": [
+                      "保持原序",
+                      "升序 (A→Z)",
+                      "降序 (Z→A)",
+                      "按长度升序"
+                    ]
+                  },
+                  {
+                    "key": "trimLines",
+                    "label": "清理首尾空白",
+                    "type": "toggle",
+                    "default": "false"
+                  },
+                  {
+                    "key": "removeBlank",
+                    "label": "移除空行",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹",
+                    "type": "folder",
+                    "default": "",
+                    "hint": "留空保存到原文件夹；始终保留原件。"
+                  }
+                ]
+              },
+              {
+                "id": "community.text-ops.merge",
+                "title": "多文本文件顺序合并",
+                "description": "将选中的多个文本/日志/Markdown 文件合并为单个输出文件。",
+                "group": "文本",
+                "icon": "file",
+                "order": 202,
+                "selection": {
+                  "kind": "files",
+                  "min": 2,
+                  "max": 500,
+                  "extensions": [
+                    ".txt",
+                    ".md",
+                    ".log",
+                    ".csv",
+                    ".tsv",
+                    ".json",
+                    ".yaml",
+                    ".yml",
+                    ".ini",
+                    ".conf"
+                  ]
+                },
+                "parameters": [
+                  {
+                    "key": "separator",
+                    "label": "文件分隔方式",
+                    "type": "select",
+                    "default": "文件名标题头",
+                    "options": [
+                      "文件名标题头",
+                      "空行分隔",
+                      "直接拼接"
+                    ]
+                  },
+                  {
+                    "key": "fileName",
+                    "label": "输出文件名（可选）",
+                    "type": "text",
+                    "default": "",
+                    "hint": "留空自动命名为“首文件名_merged”。"
+                  },
+                  {
+                    "key": "outputFolder",
+                    "label": "输出文件夹",
+                    "type": "folder",
+                    "default": ""
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "community.text-replace": {
+      "latest": "0.2.0",
+      "readme": "# 批量文本替换\r\n\r\n纯 C# 实现，**不需要 Python**。\r\n\r\n选中文件或文件夹 → **文本 → 批量文本替换**。\r\n\r\n1. **预览**：只统计命中数，不动文件；含 `0x00` 字节的二进制文件自动跳过。\r\n2. **写回**：重新读取并替换，保留原编码（UTF-8 / GBK / GB18030 自动探测）与原有 BOM。\r\n3. **备份**：默认复制成 `同名.bak`；同名备份已存在时不再覆盖。\r\n\r\n## 与旧版（Python）的差异\r\n\r\n正则捕获组引用改用 **.NET 语法**：`$1` 而不是 `\\1`。例如查找 `(\\w+)=0`、替换为 `$1=true`。\r\n",
+      "versions": {
+        "0.2.0": {
+          "file": "zips/community.text-replace-0.2.0.zip",
+          "sha256": "eda76797afb6d2b4e27d689724352ad1ffb8e0f289bd28b0e6fbe10276bde3a1",
+          "size": 96429,
+          "time": "2026-11-27T09:35:22Z",
+          "manifest": {
+            "id": "community.text-replace",
+            "name": "批量文本替换",
+            "version": "0.2.0",
+            "apiVersion": 1,
+            "license": "MIT",
+            "description": "在选中的文本文件（可含子目录）里批量做字面或正则替换，先预览命中数，写回时保留原编码与 BOM，可选 .bak 备份。",
+            "runtime": "process",
+            "entry": "TextReplace.exe",
+            "permissions": [
+              "fs.read",
+              "fs.write"
+            ],
+            "commands": [
+              {
+                "id": "community.text-replace.apply",
+                "title": "批量文本替换",
+                "description": "对 txt/md/json/cs/py 等文本文件做字面或正则替换，先预览命中数再写回，二进制文件自动跳过。",
+                "group": "文本",
+                "icon": "text-encoding",
+                "order": 262,
+                "requiresPreview": true,
+                "cancellable": false,
+                "selection": {
+                  "kind": "any",
+                  "min": 1,
+                  "max": 2000
+                },
+                "parameters": [
+                  {
+                    "key": "pattern",
+                    "label": "查找内容",
+                    "type": "text",
+                    "default": "",
+                    "required": true
+                  },
+                  {
+                    "key": "replacement",
+                    "label": "替换为",
+                    "type": "text",
+                    "default": "",
+                    "hint": "正则模式下用 .NET 语法引用捕获组，例如 $1；留空表示删除匹配内容。"
+                  },
+                  {
+                    "key": "useRegex",
+                    "label": "使用正则表达式",
+                    "type": "toggle",
+                    "default": "false"
+                  },
+                  {
+                    "key": "ignoreCase",
+                    "label": "忽略大小写",
+                    "type": "toggle",
+                    "default": "false"
+                  },
+                  {
+                    "key": "encoding",
+                    "label": "文件编码",
+                    "type": "select",
+                    "default": "自动检测",
+                    "options": [
+                      "自动检测",
+                      "UTF-8",
+                      "GBK"
+                    ]
+                  },
+                  {
+                    "key": "includeSubfolders",
+                    "label": "递归子文件夹",
+                    "type": "toggle",
+                    "default": "true"
+                  },
+                  {
+                    "key": "backup",
+                    "label": "保留 .bak 备份",
+                    "type": "toggle",
+                    "default": "true"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
