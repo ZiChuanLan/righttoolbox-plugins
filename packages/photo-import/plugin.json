@@ -1,0 +1,66 @@
+{
+  "id": "community.photo-import",
+  "name": "手机照片整理",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "把手机导入的照片按拍摄日期改名、分年/月归档，HEIC/WebP/TIFF 自动转 JPG，可选压到指定大小；先预览再移动。",
+  "runtime": "process",
+  "entry": "PhotoImport.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.photo-import.organize",
+      "title": "整理手机照片",
+      "description": "按拍摄时间重命名 + 年/月归档 + HEIC 转 JPG + 可选压缩，预览确认后移动原件。",
+      "group": "图片",
+      "icon": "folder",
+      "order": 285,
+      "requiresPreview": true,
+      "cancellable": false,
+      "selection": { "kind": "any", "min": 1, "max": 200 },
+      "parameters": [
+        {
+          "key": "naming",
+          "label": "命名方式",
+          "type": "select",
+          "default": "按拍摄日期命名 (20260101_143000)",
+          "options": ["按拍摄日期命名 (20260101_143000)", "日期前缀 + 原名", "保留原名"]
+        },
+        {
+          "key": "archive",
+          "label": "归档方式",
+          "type": "select",
+          "default": "按年/月归档 (2026/01)",
+          "options": ["按年/月归档 (2026/01)", "按年归档 (2026)", "不归档"]
+        },
+        {
+          "key": "toJpeg",
+          "label": "HEIC/WebP/TIFF 转成 JPG",
+          "type": "toggle",
+          "default": "true",
+          "hint": "需要系统已安装「HEIF 图像扩展」；PNG 不会转 JPG。"
+        },
+        {
+          "key": "shrink",
+          "label": "同时压缩到",
+          "type": "select",
+          "default": "不压缩",
+          "options": ["不压缩", "≤200 KB", "≤500 KB", "≤1 MB", "≤2 MB"]
+        },
+        {
+          "key": "includeSubfolders",
+          "label": "包含子文件夹",
+          "type": "toggle",
+          "default": "true"
+        },
+        {
+          "key": "outputRoot",
+          "label": "输出根目录（留空=各文件原目录）",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

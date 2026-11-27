@@ -1,16 +1,13 @@
 {
   "id": "community.gbk-fix",
   "name": "乱码文件名修复",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "apiVersion": 1,
   "license": "MIT",
   "description": "修复旧 ZIP、FTP 或 GBK 环境带来的中文乱码文件名（cp437 / latin-1 误解码），逐项预览后改名，冲突自动跳过。",
   "runtime": "process",
-  "entry": "main.py",
-  "permissions": [
-    "fs.read",
-    "fs.write"
-  ],
+  "entry": "GbkFix.exe",
+  "permissions": ["fs.read", "fs.write"],
   "commands": [
     {
       "id": "community.gbk-fix.repair",
@@ -21,34 +18,21 @@
       "order": 260,
       "requiresPreview": true,
       "cancellable": false,
-      "selection": {
-        "kind": "any",
-        "min": 1,
-        "max": 5000
-      },
+      "selection": { "kind": "any", "min": 1, "max": 5000 },
       "parameters": [
         {
           "key": "sourceEncoding",
           "label": "乱码来源",
           "type": "select",
           "default": "自动检测",
-          "options": [
-            "自动检测",
-            "cp437（ZIP 解压最常见）",
-            "latin-1 / ISO-8859-1"
-          ]
+          "options": ["自动检测", "cp437（ZIP 解压最常见）", "latin-1 / ISO-8859-1"]
         },
         {
           "key": "targetEncoding",
           "label": "还原为",
           "type": "select",
           "default": "自动（GBK 优先）",
-          "options": [
-            "自动（GBK 优先）",
-            "GBK",
-            "GB18030",
-            "UTF-8"
-          ]
+          "options": ["自动（GBK 优先）", "GBK", "GB18030", "UTF-8"]
         },
         {
           "key": "recursive",

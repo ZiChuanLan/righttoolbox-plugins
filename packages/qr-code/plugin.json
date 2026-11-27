@@ -1,0 +1,61 @@
+{
+  "id": "community.qr-code",
+  "name": "生成二维码",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "把网址、一段文字或 WiFi 连接信息生成二维码图片，可选尺寸、纠错级别与颜色，直接存到当前文件夹。",
+  "runtime": "process",
+  "entry": "QrCodeGen.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.qr-code.generate",
+      "title": "生成二维码",
+      "description": "填内容 → 出 PNG 二维码；选中文件或文件夹决定保存位置。",
+      "group": "图片",
+      "icon": "code",
+      "order": 288,
+      "selection": { "kind": "any", "min": 1, "max": 1 },
+      "parameters": [
+        {
+          "key": "content",
+          "label": "二维码内容",
+          "type": "text",
+          "default": "",
+          "required": true,
+          "hint": "网址、文字都行；WiFi 可用 WIFI:T:WPA;S:热点名;P:密码;; 格式。"
+        },
+        {
+          "key": "size",
+          "label": "图片边长 (px)",
+          "type": "number",
+          "default": "512",
+          "min": 96,
+          "max": 4096
+        },
+        {
+          "key": "level",
+          "label": "纠错级别",
+          "type": "select",
+          "default": "M (15%)",
+          "options": ["L (7%)", "M (15%)", "Q (25%)", "H (30%)"],
+          "hint": "级别越高越耐脏/耐遮挡，但同等内容下二维码更密。"
+        },
+        {
+          "key": "darkColor",
+          "label": "前景色",
+          "type": "select",
+          "default": "黑色",
+          "options": ["黑色", "深蓝", "深绿", "红色"]
+        },
+        {
+          "key": "fileName",
+          "label": "文件名",
+          "type": "text",
+          "default": "qrcode.png"
+        }
+      ]
+    }
+  ]
+}

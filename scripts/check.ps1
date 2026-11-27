@@ -52,25 +52,98 @@ function Invoke-SmokeHandshake([string]$pkgDir, $manifest, [string]$entryFullPat
 
     $samplePaths = @()
     $kind = if ($cmd.selection -and $cmd.selection.kind) { $cmd.selection.kind } else { 'any' }
-    if ($kind -eq 'folders') {
+    $minimum = 1
+    if ($cmd.selection -and $null -ne $cmd.selection.min) { $minimum = [Math]::Max(1, [int]$cmd.selection.min) }
+    $maximum = 3
+    if ($cmd.selection -and $null -ne $cmd.selection.max) { $maximum = [Math]::Max(1, [int]$cmd.selection.max) }
+    $sampleCount = [Math]::Min([Math]::Max($minimum, 2), [Math]::Min($maximum, 3))
+
+    # 图片夹具：check 不依赖外部图片，用一张 1x1 PNG；WPF 按内容嗅探格式，扩展名只影响插件的选择逻辑。
+    $imageExts = @('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tif', '.tiff', '.ico', '.webp', '.heic', '.heif')
+    $tinyPng = [Convert]::FromBase64String('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8AAAwAB/AL+2wAAAABJRU5ErkJggg==')
+    $defaultText = "Hello RightToolbox`n测试中文 🚀`nHello RightToolbox`n"
+
+    $script:minimalPdf = $null
+    function New-MinimalPdfBytes {
+        if ($null -ne $script:minimalPdf) { return $script:minimalPdf }
+        $objects = @(
+            "1 0 obj`r`n<< /Type /Catalog /Pages 2 0 R >>`r`nendobj`r`n",
+            "2 0 obj`r`n<< /Type /Pages /Kids [3 0 R] /Count 1 >>`r`nendobj`r`n",
+            "3 0 obj`r`n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>`r`nendobj`r`n"
+        )
+        $body = "%PDF-1.4`r`n"
+        $offsets = @()
+        foreach ($object in $objects) { $offsets += $body.Length; $body += $object }
+        $startxref = $body.Length
+        $xref = "xref`r`n0 4`r`n0000000000 65535 f`r`n"
+        foreach ($offset in $offsets) { $xref += ("{0:D10} 00000 n`r`n" -f $offset) }
+        $body += $xref + "trailer`r`n<< /Size 4 /Root 1 0 R >>`r`nstartxref`r`n$startxref`r`n%%EOF`r`n"
+        $script:minimalPdf = [System.Text.Encoding]::ASCII.GetBytes($body)
+        return $script:minimalPdf
+    }
+
+    function New-SmokeFile([string]$relative, [string]$text) {
+        $separator = [System.IO.Path]::DirectorySeparatorChar
+        $target = Join-Path $work ($relative -replace '/', $separator)
+        $parent = Split-Path -Parent $target
+        if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+        $extension = [System.IO.Path]::GetExtension($target).ToLowerInvariant()
+        if ($imageExts -contains $extension) {
+            [System.IO.File]::WriteAllBytes($target, $tinyPng)
+        } elseif ($extension -eq '.pdf') {
+            # PDF 夹具：一页的最小有效 PDF，带正确 xref，PDFsharp 能打开。
+            [System.IO.File]::WriteAllBytes($target, (New-MinimalPdfBytes))
+        } else {
+            [System.IO.File]::WriteAllText($target, $text, [System.Text.UTF8Encoding]::new($false))
+        }
+        return $target
+    }
+
+    $smokePath = Join-Path $pkgDir 'smoke.json'
+    $smoke = $null
+    if (Test-Path -LiteralPath $smokePath) {
+        $smoke = Get-Content -LiteralPath $smokePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    }
+
+    if ($null -ne $smoke -and $smoke.files) {
+        $smokeText = if ($smoke.text) { [string]$smoke.text } else { $defaultText }
+        foreach ($relative in @($smoke.files)) {
+            if ([string]::IsNullOrWhiteSpace($relative)) { continue }
+            $samplePaths += New-SmokeFile ([string]$relative) $smokeText
+        }
+        if ($smoke.directories) {
+            foreach ($relative in @($smoke.directories)) {
+                if ([string]::IsNullOrWhiteSpace($relative)) { continue }
+                $directory = Join-Path $work ([string]$relative)
+                New-Item -ItemType Directory -Path $directory -Force | Out-Null
+                $samplePaths += $directory
+            }
+        }
+    } elseif ($kind -eq 'folders') {
         $sub = Join-Path $work 'sample-dir'
         New-Item -ItemType Directory -Path $sub -Force | Out-Null
-        [System.IO.File]::WriteAllText((Join-Path $sub 'hello.txt'), "hello`nworld`n", [System.Text.UTF8Encoding]::new($false))
+        [System.IO.File]::WriteAllText((Join-Path $sub 'hello.txt'), $defaultText, [System.Text.UTF8Encoding]::new($false))
         $samplePaths = @($sub)
     } else {
         $ext = '.txt'
         if ($cmd.selection -and $cmd.selection.extensions -and $cmd.selection.extensions.Count -gt 0) {
             $ext = [string]$cmd.selection.extensions[0]
         }
-        $sampleFile = Join-Path $work ("sample$ext")
         $content = switch ($ext.ToLowerInvariant()) {
             '.csv'  { "name,score`nAlice,95`nBob,88`n" }
             '.json' { '[{"name":"Alice","score":95}]' }
             '.b64'  { 'SGVsbG8=' }
-            default { "Hello RightToolbox`n测试中文 🚀`nHello RightToolbox`n" }
+            default { $defaultText }
         }
-        [System.IO.File]::WriteAllText($sampleFile, $content, [System.Text.UTF8Encoding]::new($false))
-        $samplePaths = @($sampleFile)
+        if ($imageExts -contains $ext.ToLowerInvariant()) {
+            for ($i = 1; $i -le $sampleCount; $i++) {
+                $samplePaths += New-SmokeFile ("sample$i$ext") $content
+            }
+        } else {
+            for ($i = 1; $i -le $sampleCount; $i++) {
+                $samplePaths += New-SmokeFile ("sample$i$ext") $content
+            }
+        }
     }
 
     $parameters = @{}
@@ -242,7 +315,10 @@ foreach ($dir in (Get-ChildItem -LiteralPath $packagesRoot -Directory | Sort-Obj
             if ($LASTEXITCODE -ne 0) {
                 $problems.Add("dotnet build 失败：" + ($buildOut -join ' '))
             } else {
-                $entryPath = Join-Path $dir.FullName "bin\Release\net10.0\$($manifest.entry)"
+                $tfm = Get-ChildItem -LiteralPath (Join-Path $dir.FullName 'bin\Release') -Directory -ErrorAction SilentlyContinue |
+                    Sort-Object { $_.Name -ne 'net10.0' }, Name | Select-Object -First 1
+                $tfmName = if ($tfm) { $tfm.Name } else { 'net10.0' }
+                $entryPath = Join-Path $dir.FullName "bin\Release\$tfmName\$($manifest.entry)"
             }
         } else {
             $entryPath = Join-Path $dir.FullName ($manifest.entry -replace '/', '\')

@@ -1,16 +1,13 @@
 {
   "id": "community.text-replace",
   "name": "批量文本替换",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "apiVersion": 1,
   "license": "MIT",
   "description": "在选中的文本文件（可含子目录）里批量做字面或正则替换，先预览命中数，写回时保留原编码与 BOM，可选 .bak 备份。",
   "runtime": "process",
-  "entry": "main.py",
-  "permissions": [
-    "fs.read",
-    "fs.write"
-  ],
+  "entry": "TextReplace.exe",
+  "permissions": ["fs.read", "fs.write"],
   "commands": [
     {
       "id": "community.text-replace.apply",
@@ -20,61 +17,16 @@
       "icon": "text-encoding",
       "order": 262,
       "requiresPreview": true,
-      "selection": {
-        "kind": "any",
-        "min": 1,
-        "max": 2000
-      },
+      "cancellable": false,
+      "selection": { "kind": "any", "min": 1, "max": 2000 },
       "parameters": [
-        {
-          "key": "pattern",
-          "label": "查找内容",
-          "type": "text",
-          "default": "",
-          "required": true
-        },
-        {
-          "key": "replacement",
-          "label": "替换为",
-          "type": "text",
-          "default": "",
-          "hint": "正则模式下可用捕获组引用；留空表示删除匹配内容。"
-        },
-        {
-          "key": "useRegex",
-          "label": "使用正则表达式",
-          "type": "toggle",
-          "default": "false"
-        },
-        {
-          "key": "ignoreCase",
-          "label": "忽略大小写",
-          "type": "toggle",
-          "default": "false"
-        },
-        {
-          "key": "encoding",
-          "label": "文件编码",
-          "type": "select",
-          "default": "自动检测",
-          "options": [
-            "自动检测",
-            "UTF-8",
-            "GBK"
-          ]
-        },
-        {
-          "key": "includeSubfolders",
-          "label": "递归子文件夹",
-          "type": "toggle",
-          "default": "true"
-        },
-        {
-          "key": "backup",
-          "label": "保留 .bak 备份",
-          "type": "toggle",
-          "default": "true"
-        }
+        { "key": "pattern", "label": "查找内容", "type": "text", "default": "", "required": true },
+        { "key": "replacement", "label": "替换为", "type": "text", "default": "", "hint": "正则模式下用 .NET 语法引用捕获组，例如 $1；留空表示删除匹配内容。" },
+        { "key": "useRegex", "label": "使用正则表达式", "type": "toggle", "default": "false" },
+        { "key": "ignoreCase", "label": "忽略大小写", "type": "toggle", "default": "false" },
+        { "key": "encoding", "label": "文件编码", "type": "select", "default": "自动检测", "options": ["自动检测", "UTF-8", "GBK"] },
+        { "key": "includeSubfolders", "label": "递归子文件夹", "type": "toggle", "default": "true" },
+        { "key": "backup", "label": "保留 .bak 备份", "type": "toggle", "default": "true" }
       ]
     }
   ]

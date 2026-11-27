@@ -1,0 +1,82 @@
+{
+  "id": "community.image-watermark",
+  "name": "批量加文字水印",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "给图片批量加文字水印：四角、居中或斜向平铺，可调字号、不透明度与颜色，适合发群、闲鱼、公众号防搬运。",
+  "runtime": "process",
+  "entry": "ImageWatermark.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.image-watermark.apply",
+      "title": "批量加文字水印",
+      "description": "按位置与透明度批量打文字水印，输出新文件，原件不动。",
+      "group": "图片",
+      "icon": "star",
+      "order": 282,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 500,
+        "extensions": [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tif", ".tiff", ".webp", ".heic", ".heif"]
+      },
+      "parameters": [
+        {
+          "key": "text",
+          "label": "水印文字",
+          "type": "text",
+          "default": "",
+          "required": true,
+          "hint": "最多 60 个字符，支持中文。"
+        },
+        {
+          "key": "position",
+          "label": "位置",
+          "type": "select",
+          "default": "右下角",
+          "options": ["右下角", "左下角", "右上角", "左上角", "居中", "平铺"]
+        },
+        {
+          "key": "fontSize",
+          "label": "字号",
+          "type": "number",
+          "default": "36",
+          "min": 10,
+          "max": 200,
+          "hint": "图片较窄时会自动缩小，避免盖住整张图。"
+        },
+        {
+          "key": "opacity",
+          "label": "不透明度 (%)",
+          "type": "number",
+          "default": "45",
+          "min": 5,
+          "max": 100
+        },
+        {
+          "key": "color",
+          "label": "颜色",
+          "type": "select",
+          "default": "白色",
+          "options": ["白色", "黑色", "灰色", "红色"]
+        },
+        {
+          "key": "margin",
+          "label": "边距 (px)",
+          "type": "number",
+          "default": "32",
+          "min": 0,
+          "max": 500
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹（留空=原目录）",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

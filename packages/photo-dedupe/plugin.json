@@ -1,0 +1,48 @@
+{
+  "id": "community.photo-dedupe",
+  "name": "相似照片清理",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "用感知哈希找出相似照片（连拍、转发压缩、改过尺寸都能认出），每组保留最高清的一张，其余可移入 _duplicates。",
+  "runtime": "process",
+  "entry": "PhotoDedupe.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.photo-dedupe.scan",
+      "title": "查找相似照片",
+      "description": "按感知哈希分组相似照片，先给分组结果，确认后再把多余副本移到 _duplicates。",
+      "group": "图片",
+      "icon": "search",
+      "order": 284,
+      "requiresPreview": true,
+      "cancellable": false,
+      "selection": { "kind": "any", "min": 1, "max": 50 },
+      "parameters": [
+        {
+          "key": "threshold",
+          "label": "相似度阈值（越小越严格）",
+          "type": "number",
+          "default": "8",
+          "min": 0,
+          "max": 20,
+          "hint": "0 = 几乎完全一致；8 = 默认，能认出压缩与轻微裁剪；20 = 很宽松。"
+        },
+        {
+          "key": "includeSubfolders",
+          "label": "包含子文件夹",
+          "type": "toggle",
+          "default": "true"
+        },
+        {
+          "key": "action",
+          "label": "处理方式",
+          "type": "select",
+          "default": "只分组检测",
+          "options": ["只分组检测", "重复项移到 _duplicates"]
+        }
+      ]
+    }
+  ]
+}

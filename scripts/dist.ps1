@@ -70,12 +70,14 @@ try {
             if ($null -ne $csproj) {
                 & dotnet build $csproj.FullName -c Release --nologo | Out-Null
                 if ($LASTEXITCODE -ne 0) { throw "编译失败：$($csproj.FullName)" }
-                $binDir = Join-Path $dir.FullName 'bin\Release\net10.0'
+                $tfm = Get-ChildItem -LiteralPath (Join-Path $dir.FullName 'bin\Release') -Directory -ErrorAction SilentlyContinue |
+                    Sort-Object { $_.Name -ne 'net10.0' }, Name | Select-Object -First 1
+                $binDir = Join-Path $dir.FullName "bin\Release\$(if ($tfm) { $tfm.Name } else { 'net10.0' })"
                 Copy-Item -Path (Join-Path $binDir '*') -Destination $pkgStage -Recurse -Force
                 Get-ChildItem -LiteralPath $pkgStage -Filter '*.pdb' -Recurse | Remove-Item -Force
             } else {
                 foreach ($item in Get-ChildItem -LiteralPath $dir.FullName -Force) {
-                    if ($item.Name -in @('bin', 'obj', 'tests', '__pycache__', 'node_modules')) { continue }
+                    if ($item.Name -in @('bin', 'obj', 'tests', '__pycache__', 'node_modules', 'smoke.json')) { continue }
                     if ($item.Name -like '*test*') { continue }
                     Copy-Item -LiteralPath $item.FullName -Destination $pkgStage -Recurse -Force
                 }

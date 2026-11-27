@@ -1,0 +1,58 @@
+{
+  "id": "community.image-shrink",
+  "name": "图片压到指定大小",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "把图片压到指定体积（100KB / 200KB / 500KB / 1MB / 2MB 或自定义），自动调质量与尺寸，适合上传报名、证件、表单系统。",
+  "runtime": "process",
+  "entry": "ImageShrink.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.image-shrink.squeeze",
+      "title": "压缩到指定大小",
+      "description": "先降 JPEG 质量、再按需缩小尺寸，直到体积达标；输出新文件，原件不动。",
+      "group": "图片",
+      "icon": "image",
+      "order": 280,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 500,
+        "extensions": [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tif", ".tiff", ".webp", ".heic", ".heif"]
+      },
+      "parameters": [
+        {
+          "key": "target",
+          "label": "目标大小",
+          "type": "select",
+          "default": "200 KB",
+          "options": ["100 KB", "200 KB", "500 KB", "1 MB", "2 MB", "自定义"]
+        },
+        {
+          "key": "customKb",
+          "label": "自定义上限 (KB)",
+          "type": "number",
+          "default": "200",
+          "min": 10,
+          "max": 20480,
+          "hint": "仅当目标大小选「自定义」时生效。"
+        },
+        {
+          "key": "maxEdge",
+          "label": "最长边限制",
+          "type": "select",
+          "default": "不限制",
+          "options": ["不限制", "1920 px", "1600 px", "1280 px", "1080 px", "800 px"]
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹（留空=原目录）",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

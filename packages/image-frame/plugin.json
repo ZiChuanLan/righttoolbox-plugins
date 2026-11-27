@@ -1,0 +1,67 @@
+{
+  "id": "community.image-frame",
+  "name": "批量加边框 / 圆角",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "给图片批量加白边、拍立得边框、细黑边或圆角（透明背景），适合做头像、打印留白与统一排版。",
+  "runtime": "process",
+  "entry": "ImageFrame.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.image-frame.apply",
+      "title": "加边框 / 圆角",
+      "description": "白边、拍立得、细黑边或圆角透明，宽度按图片长边百分比自适应。",
+      "group": "图片",
+      "icon": "layers",
+      "order": 287,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 500,
+        "extensions": [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tif", ".tiff", ".webp", ".heic", ".heif"]
+      },
+      "parameters": [
+        {
+          "key": "style",
+          "label": "边框样式",
+          "type": "select",
+          "default": "白边（打印留白）",
+          "options": ["白边（打印留白）", "拍立得边框", "细黑边", "圆角（透明）"]
+        },
+        {
+          "key": "borderPercent",
+          "label": "边框宽度（占长边 %）",
+          "type": "number",
+          "default": "4",
+          "min": 0,
+          "max": 20,
+          "hint": "白边/拍立得/黑边生效；圆角样式忽略此项。"
+        },
+        {
+          "key": "radiusPercent",
+          "label": "圆角半径（占短边 %）",
+          "type": "number",
+          "default": "8",
+          "min": 2,
+          "max": 50,
+          "hint": "仅圆角样式生效。"
+        },
+        {
+          "key": "color",
+          "label": "边框颜色",
+          "type": "select",
+          "default": "白色",
+          "options": ["白色", "黑色", "米色"]
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹（留空=原目录）",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

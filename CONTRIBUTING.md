@@ -28,6 +28,7 @@
 - `LICENSE`：明确开源许可证（推荐 MIT）
 - 单元测试：`*.Tests.csproj` / `*test*.ps1` / `test_*.py` / `*.test.mjs`（必须在临时目录运行，不得触碰用户真实文件或外部网络）
 - 在 `registry.json` 添加对应的市场登记项与中英文 `summary`
+- `smoke.json`（可选，不会打进发布包）：为 `check.ps1` 的协议烟测指定夹具，例如 `{"files":["inbox/a.png","inbox/b.png"]}`。图片扩展名会自动生成一张真实 PNG，其他按文本写入；`selection.kind` 为 `any` 但实际处理图片的插件**必须**提供，否则烟测只会拿到一个 `.txt`。
 
 ## 3. 安全与可用性原则
 

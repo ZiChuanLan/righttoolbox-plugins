@@ -149,6 +149,21 @@ public sealed class PluginContext
         }
         throw new IOException("同名输出过多，请清理目标目录或更换输出文件夹。");
     }
+
+    /// <summary>Keeps the requested file name and extension, appending " (n)" when the target already exists.</summary>
+    public static string UniqueFilePath(string desiredPath)
+    {
+        if (!File.Exists(desiredPath) && !Directory.Exists(desiredPath)) return desiredPath;
+        var directory = Path.GetDirectoryName(desiredPath) ?? Environment.CurrentDirectory;
+        var stem = Path.GetFileNameWithoutExtension(desiredPath);
+        var extension = Path.GetExtension(desiredPath);
+        for (var index = 1; index < 10000; index++)
+        {
+            var candidate = Path.Combine(directory, $"{stem} ({index}){extension}");
+            if (!File.Exists(candidate) && !Directory.Exists(candidate)) return candidate;
+        }
+        throw new IOException("同名输出过多，请清理目标目录或更换输出文件夹。");
+    }
 }
 
 public static class PluginHost

@@ -1,0 +1,49 @@
+{
+  "id": "community.image-orient",
+  "name": "照片方向修正",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "按 EXIF 方向信息自动把手机照片转正，或手动旋转 90°/180°与左右上下镜像；资源管理器里歪着的图一次修好。",
+  "runtime": "process",
+  "entry": "ImageOrient.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.image-orient.fix",
+      "title": "修正照片方向",
+      "description": "自动读取 EXIF 方向并转正，也可指定旋转与镜像；方向本来就对的图不会产生多余副本。",
+      "group": "图片",
+      "icon": "rotate-ccw",
+      "order": 286,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 500,
+        "extensions": [".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp", ".heic", ".heif"]
+      },
+      "parameters": [
+        {
+          "key": "action",
+          "label": "旋转方式",
+          "type": "select",
+          "default": "自动（按 EXIF 修正）",
+          "options": ["自动（按 EXIF 修正）", "顺时针旋转 90°", "逆时针旋转 90°", "旋转 180°"]
+        },
+        {
+          "key": "flip",
+          "label": "翻转",
+          "type": "select",
+          "default": "不翻转",
+          "options": ["不翻转", "水平翻转（左右镜像）", "垂直翻转（上下镜像）"]
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹（留空=原目录）",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

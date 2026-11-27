@@ -73,7 +73,7 @@
       "license": "MIT",
       "group": "开发",
       "icon": "code-format",
-      "language": "PowerShell",
+      "language": "C# (.NET 10)",
       "package": "packages/base64-kit",
       "permissions": ["fs.read", "fs.write", "clipboard.write"],
       "tags": ["Base64", "DataURI", "编码", "解码", "开发", "PowerShell"],
@@ -89,7 +89,7 @@
       "license": "MIT",
       "group": "文件",
       "icon": "rename",
-      "language": "Python 3",
+      "language": "C# (.NET 10)",
       "package": "packages/gbk-fix",
       "permissions": ["fs.read", "fs.write"],
       "tags": ["乱码", "GBK", "ZIP", "编码", "重命名", "mojibake"],
@@ -105,7 +105,7 @@
       "license": "MIT",
       "group": "开发",
       "icon": "code-format",
-      "language": "Node.js",
+      "language": "C# (.NET 10)",
       "package": "packages/json-format",
       "permissions": ["fs.read", "fs.write"],
       "tags": ["JSON", "格式化", "压缩", "校验", "排序", "format"],
@@ -121,13 +121,189 @@
       "license": "MIT",
       "group": "文本",
       "icon": "text-encoding",
-      "language": "Python 3",
+      "language": "C# (.NET 10)",
       "package": "packages/text-replace",
       "permissions": ["fs.read", "fs.write"],
       "tags": ["替换", "正则", "regex", "编码", "批量", "replace"],
       "summary": {
         "zh": "跨文件批量查找替换，支持正则、递归子目录与 UTF-8/GBK 自动探测，预览命中数后写回并保留 .bak。",
         "en": "Cross-file find & replace with regex, recursion and UTF-8/GBK detection, previewing hit counts before writing with .bak backups."
+      }
+    },
+    {
+      "id": "community.image-shrink",
+      "name": "图片压到指定大小",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "image",
+      "language": "C# (.NET 10)",
+      "package": "packages/image-shrink",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["压缩", "上传", "报名", "200KB", "图片", "compress"],
+      "summary": {
+        "zh": "把图片压到指定体积（100KB/200KB/500KB/1MB/2MB 或自定义），先降质量再缩尺寸，报名上传一次过。",
+        "en": "Squeeze images to a target file size by lowering JPEG quality first and downscaling only when needed."
+      }
+    },
+    {
+      "id": "community.image-collage",
+      "name": "拼长图 / 九宫格",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "layers",
+      "language": "C# (.NET 10)",
+      "package": "packages/image-collage",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["拼图", "长图", "九宫格", "聊天记录", "collage"],
+      "summary": {
+        "zh": "竖向/横向长图与九宫格、四宫格拼接，等比留白不裁切，适合聊天记录与朋友圈。",
+        "en": "Combine photos into vertical or horizontal strips, 3x3 or 2x2 grids with letterboxing and no cropping."
+      }
+    },
+    {
+      "id": "community.image-watermark",
+      "name": "批量加文字水印",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "star",
+      "language": "C# (.NET 10)",
+      "package": "packages/image-watermark",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["水印", "防搬运", "平铺", "批量", "watermark"],
+      "summary": {
+        "zh": "批量打文字水印：四角、居中或斜向平铺，字号自适应，不透明度与颜色可调。",
+        "en": "Batch text watermarks in any corner, centered or tiled diagonally, with adaptive font size and opacity."
+      }
+    },
+    {
+      "id": "community.id-photo",
+      "name": "证件照裁切",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "layers",
+      "language": "C# (.NET 10)",
+      "package": "packages/id-photo",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["证件照", "一寸", "二寸", "报名", "id-photo"],
+      "summary": {
+        "zh": "一寸/二寸/小一寸/大一寸标准证件照裁切，居中裁切或完整留白，输出可直接上传。",
+        "en": "Crop photos into standard ID sizes (1-inch, 2-inch, small/large) with center-crop or padded modes."
+      }
+    },
+    {
+      "id": "community.photo-dedupe",
+      "name": "相似照片清理",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "search",
+      "language": "C# (.NET 10)",
+      "package": "packages/photo-dedupe",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["去重", "相似图", "感知哈希", "连拍", "dedupe"],
+      "summary": {
+        "zh": "感知哈希找相似照片（连拍、转发压缩、改过尺寸都能认出），每组保留最清晰的一张。",
+        "en": "Find near-duplicate photos with perceptual hashing (burst shots, re-compressed, resized) and keep the sharpest."
+      }
+    },
+    {
+      "id": "community.photo-import",
+      "name": "手机照片整理",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "folder",
+      "language": "C# (.NET 10)",
+      "package": "packages/photo-import",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["照片", "HEIC", "归档", "EXIF", "重命名", "import"],
+      "summary": {
+        "zh": "手机照片按拍摄日期重命名、分年/月归档，HEIC/WebP/TIFF 转 JPG，可选压缩，预览后移动。",
+        "en": "Rename phone photos by capture date, archive into year/month folders, convert HEIC/WebP/TIFF to JPEG."
+      }
+    },
+    {
+      "id": "community.clean-junk",
+      "name": "清理垃圾文件与空文件夹",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "文件",
+      "icon": "trash-2",
+      "language": "C# (.NET 10)",
+      "package": "packages/clean-junk",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["清理", "Thumbs.db", "临时文件", "空文件夹", "junk"],
+      "summary": {
+        "zh": "清理 Thumbs.db、.DS_Store、临时文件与空文件夹，先列清单确认再删除，跳过符号链接。",
+        "en": "Remove Thumbs.db, .DS_Store, temp files and empty folders with a preview step and reparse-point safety."
+      }
+    },
+    {
+      "id": "community.image-orient",
+      "name": "照片方向修正",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "rotate-ccw",
+      "language": "C# (.NET 10)",
+      "package": "packages/image-orient",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["方向", "EXIF", "旋转", "镜像", "转正"],
+      "summary": {
+        "zh": "按 EXIF 自动把手机照片转正，或手动旋转 90°/180°、左右上下镜像；方向正确的图不产生多余副本。",
+        "en": "Fix photo orientation from EXIF automatically, or rotate/mirror manually; correct photos get no duplicate."
+      }
+    },
+    {
+      "id": "community.image-frame",
+      "name": "批量加边框 / 圆角",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "layers",
+      "language": "C# (.NET 10)",
+      "package": "packages/image-frame",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["边框", "圆角", "白边", "拍立得", "头像"],
+      "summary": {
+        "zh": "批量加白边、拍立得边框、细黑边或圆角（透明背景），宽度按长边百分比自适应。",
+        "en": "Batch add white borders, polaroid frames, thin outlines or rounded transparent corners with adaptive width."
+      }
+    },
+    {
+      "id": "community.qr-code",
+      "name": "生成二维码",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "图片",
+      "icon": "code",
+      "language": "C# (.NET 10)",
+      "package": "packages/qr-code",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["二维码", "QR", "WiFi", "网址", "分享"],
+      "summary": {
+        "zh": "把网址、文字或 WiFi 信息生成 PNG 二维码，可选尺寸、纠错级别与颜色，直接存到当前文件夹。",
+        "en": "Turn URLs, text or WiFi credentials into a PNG QR code with configurable size, error correction and colour."
+      }
+    },
+    {
+      "id": "community.pdf-merge",
+      "name": "PDF 合并 / 拆分 / 提取",
+      "author": "RightToolbox Community",
+      "license": "MIT",
+      "group": "文档",
+      "icon": "file-text",
+      "language": "C# (.NET 10)",
+      "package": "packages/pdf-merge",
+      "permissions": ["fs.read", "fs.write"],
+      "tags": ["PDF", "合并", "拆分", "提取", "扫描件"],
+      "summary": {
+        "zh": "多个 PDF 合并成一个、按页拆成单页，或按 1-3,5 提取指定页码；发票、合同、扫描件一次整理好。",
+        "en": "Merge PDFs, split every page into its own file, or extract ranges like 1-3,5 without re-compressing content."
       }
     }
   ]

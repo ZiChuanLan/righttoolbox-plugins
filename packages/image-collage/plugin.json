@@ -1,0 +1,66 @@
+{
+  "id": "community.image-collage",
+  "name": "拼长图 / 九宫格",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "把多张图片拼成竖向长图、横向长图、九宫格或四宫格，适合拼聊天记录、网页长截图、产品图与朋友圈九宫格。",
+  "runtime": "process",
+  "entry": "ImageCollage.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.image-collage.compose",
+      "title": "拼接图片",
+      "description": "按顺序拼成竖图/横图或宫格，等比留白不裁切，输出单张成品图。",
+      "group": "图片",
+      "icon": "layers",
+      "order": 281,
+      "selection": {
+        "kind": "files",
+        "min": 2,
+        "max": 99,
+        "extensions": [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tif", ".tiff", ".webp", ".heic", ".heif"]
+      },
+      "parameters": [
+        {
+          "key": "layout",
+          "label": "拼接方式",
+          "type": "select",
+          "default": "竖向长图",
+          "options": ["竖向长图", "横向长图", "九宫格 (3×3)", "四宫格 (2×2)"]
+        },
+        {
+          "key": "gap",
+          "label": "图片间距 (px)",
+          "type": "number",
+          "default": "8",
+          "min": 0,
+          "max": 200
+        },
+        {
+          "key": "background",
+          "label": "背景颜色",
+          "type": "select",
+          "default": "白色",
+          "options": ["白色", "黑色", "灰色", "透明"]
+        },
+        {
+          "key": "maxEdge",
+          "label": "成品最长边 (px)",
+          "type": "number",
+          "default": "4000",
+          "min": 500,
+          "max": 12000,
+          "hint": "超出时整体等比缩小，避免生成打不开的超大图。"
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹（留空=第一张图所在目录）",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,41 +1,30 @@
 {
   "id": "community.base64-kit",
   "name": "Base64 / Data URI 编解码",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "apiVersion": 1,
   "license": "MIT",
-  "description": "Windows 原生 PowerShell 免编译插件：文件转 Base64 / Data URI 并复制剪贴板，以及 Base64 文本还原为文件。",
+  "description": "文件与 Base64 / Data URI 互转：编码结果进剪贴板或写 .b64.txt，也能把 Base64 文本还原成文件。",
   "runtime": "process",
-  "entry": "main.ps1",
-  "permissions": [
-    "fs.read",
-    "fs.write",
-    "clipboard.write"
-  ],
+  "entry": "Base64Kit.exe",
+  "permissions": ["fs.read", "fs.write", "clipboard.write"],
   "commands": [
     {
       "id": "community.base64-kit.encode",
       "title": "文件转 Base64 / Data URI",
-      "description": "将选定文件编码为纯 Base64 或 data:<mime>;base64,... 字符串，自动复制剪贴板并可选保存文本。",
+      "description": "把选中文件编码成 data:<mime>;base64,... 或纯 Base64，结果进剪贴板，可选写 .b64.txt。",
       "group": "开发",
       "icon": "code-format",
       "order": 240,
       "autoRun": true,
-      "selection": {
-        "kind": "files",
-        "min": 1,
-        "max": 20
-      },
+      "selection": { "kind": "files", "min": 1, "max": 20 },
       "parameters": [
         {
           "key": "outputMode",
           "label": "编码格式",
           "type": "select",
           "default": "Data URI (含 MIME)",
-          "options": [
-            "Data URI (含 MIME)",
-            "纯 Base64 字符串"
-          ]
+          "options": ["Data URI (含 MIME)", "纯 Base64 字符串"]
         },
         {
           "key": "saveToFile",
@@ -45,7 +34,7 @@
         },
         {
           "key": "outputFolder",
-          "label": "输出文件夹",
+          "label": "输出文件夹（留空=原目录）",
           "type": "folder",
           "default": ""
         }
@@ -54,30 +43,30 @@
     {
       "id": "community.base64-kit.decode",
       "title": "Base64 文本还原为文件",
-      "description": "自动剥离 Data URI 前缀与空白换行并解码还原为文件（保留原文本）。",
+      "description": "粘贴 Base64 或 Data URI，自动剥离前缀与空白并还原成文件。",
       "group": "开发",
       "icon": "file",
       "order": 241,
-      "selection": {
-        "kind": "files",
-        "min": 1,
-        "max": 100,
-        "extensions": [
-          ".b64",
-          ".txt"
-        ]
-      },
+      "selection": { "kind": "any", "min": 1, "max": 1 },
       "parameters": [
         {
-          "key": "extension",
-          "label": "目标扩展名（可选）",
+          "key": "payload",
+          "label": "Base64 或 Data URI 内容",
           "type": "text",
           "default": "",
-          "hint": "留空时自动识别 Data URI 中的格式，无法识别则输出 .bin。"
+          "required": true,
+          "hint": "支持 data:image/png;base64,... 前缀，空白与换行会被忽略。"
+        },
+        {
+          "key": "extension",
+          "label": "目标扩展名（留空自动识别）",
+          "type": "text",
+          "default": "",
+          "hint": "无法从 Data URI 识别时输出 .bin。"
         },
         {
           "key": "outputFolder",
-          "label": "输出文件夹",
+          "label": "输出文件夹（留空=选中项所在目录）",
           "type": "folder",
           "default": ""
         }

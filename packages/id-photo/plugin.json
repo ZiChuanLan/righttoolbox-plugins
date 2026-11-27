@@ -1,0 +1,73 @@
+{
+  "id": "community.id-photo",
+  "name": "证件照裁切",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "license": "MIT",
+  "description": "把照片裁成一寸、二寸、小一寸、大一寸等标准证件照尺寸，居中裁切或完整留白，输出可直接上传。",
+  "runtime": "process",
+  "entry": "IdPhoto.exe",
+  "permissions": ["fs.read", "fs.write"],
+  "commands": [
+    {
+      "id": "community.id-photo.crop",
+      "title": "裁成证件照",
+      "description": "按标准规格居中裁切或完整留白，输出指定像素的证件照。",
+      "group": "图片",
+      "icon": "layers",
+      "order": 283,
+      "selection": {
+        "kind": "files",
+        "min": 1,
+        "max": 200,
+        "extensions": [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".heic", ".heif"]
+      },
+      "parameters": [
+        {
+          "key": "spec",
+          "label": "规格",
+          "type": "select",
+          "default": "一寸 (295×413)",
+          "options": ["一寸 (295×413)", "二寸 (413×579)", "小一寸 (260×378)", "大一寸 (390×567)", "自定义"]
+        },
+        {
+          "key": "customWidth",
+          "label": "自定义宽 (px)",
+          "type": "number",
+          "default": "295",
+          "min": 100,
+          "max": 4000,
+          "hint": "仅当规格选「自定义」时生效。"
+        },
+        {
+          "key": "customHeight",
+          "label": "自定义高 (px)",
+          "type": "number",
+          "default": "413",
+          "min": 100,
+          "max": 4000
+        },
+        {
+          "key": "mode",
+          "label": "处理方式",
+          "type": "select",
+          "default": "居中裁切（推荐）",
+          "options": ["居中裁切（推荐）", "完整留白"]
+        },
+        {
+          "key": "background",
+          "label": "留白背景色",
+          "type": "select",
+          "default": "白色",
+          "options": ["白色", "蓝色", "红色", "浅灰"]
+        },
+        {
+          "key": "outputFolder",
+          "label": "输出文件夹（留空=原目录）",
+          "type": "folder",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}
