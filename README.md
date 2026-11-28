@@ -4,6 +4,29 @@
 
 每个插件均遵循 RightToolbox v1 UTF-8 JSON Lines 独立进程协议，无需修改或重编译宿主即可直接进入 Windows 资源管理器右键菜单、快捷浮窗与完整工作台。
 
+## 先装宿主
+
+插件跑在 [RightToolbox](https://github.com/ZiChuanLan/RightToolbox/releases/latest) 里，本体不需要任何第三方引擎：
+
+- `RightToolbox-x.y.z-setup.exe`（约 6.5 MB）：缺 .NET 10 桌面运行时时会引导下载
+- `RightToolbox-x.y.z-setup-offline.exe`（约 63 MB）：自带运行时，无网也能装
+
+装到 `%LOCALAPPDATA%\Programs\RightToolbox`，不需要管理员权限。
+
+## 宿主内置与本仓库的边界
+
+宿主自带 **27 个内置命令**，本仓库的 **19 个插件补的是内置没做的另一半**，两边都不重复造第三方已有的东西：
+
+| 宿主已内置 | 本仓库补充 |
+| --- | --- |
+| 图片压缩 / 转格式 / 缩放 / 去 EXIF | 压到指定大小、拼长图、批量水印、证件照、相似照片去重、方向修正、边框圆角 |
+| 图片合并为 PDF、Office 转 PDF、PDF 转图片 | PDF 合并 / 拆分 / 按页码提取 |
+| ZIP / TAR 打包解压 | 乱码文件名修复 |
+| 文本统计与格式化 | 跨文件批量替换、JSON 批量格式化、Base64 编解码 |
+| —— | 手机照片整理、清理垃圾文件、生成二维码 |
+
+宿主负责日常高频，插件负责补齐边角场景。`.7z` / `.rar` 解压这类系统里已有成熟工具的事，两边都不实现。
+
 ## 已收录插件
 
 | 包目录 | 插件 ID | 名称 | 语言 | 说明 |
